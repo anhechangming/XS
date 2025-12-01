@@ -3,7 +3,7 @@ package com.cyd.xs.dto.user;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+// 登录响应DTO
 import java.time.LocalDateTime;
 
 @Data

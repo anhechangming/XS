@@ -88,11 +88,6 @@
         </dependency>
         <!-- MyBatis Spring Boot starter：负责自动创建 SqlSessionFactory 等 -->
 
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-        </dependency>
-
     </dependencies>
 
     <build>

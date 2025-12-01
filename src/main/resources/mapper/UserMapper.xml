@@ -10,4 +10,7 @@
     <select id="countByUsername" resultType="java.lang.Integer">
         SELECT COUNT(1) FROM users WHERE username = #{username} AND deleted_at IS NULL
     </select>
+
+
+
 </mapper>

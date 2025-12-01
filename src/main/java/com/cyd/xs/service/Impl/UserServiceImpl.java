@@ -4,22 +4,16 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.json.JSONUtil;
 import com.cyd.xs.config.JwtConfig;
-import com.cyd.xs.dto.user.LoginResponseDTO;
-import com.cyd.xs.dto.user.UserLoginDTO;
-import com.cyd.xs.dto.user.UserRegisterDTO;
-import com.cyd.xs.entity.User.UserPrivacy;
-import com.cyd.xs.entity.User.UserProfile;
-import com.cyd.xs.entity.User.UserPublicStats;
-import com.cyd.xs.entity.User.UserSensitive;
+import com.cyd.xs.dto.user.*;
+import com.cyd.xs.entity.User.*;
 import com.cyd.xs.exception.BusinessException;
 import com.cyd.xs.mapper.UserMapper;
 import com.cyd.xs.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.cyd.xs.entity.User.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.util.DigestUtils;
 
 
 import java.time.LocalDateTime;
@@ -84,6 +78,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userMapper.insert(user);
         return user.getId();
     }
+    /**
+     * 用户身份选择
+     */
+    @Override
+    @Transactional
+    public void updateCareerStage(Long userId, String careerStage) {
+        // 1. 校验身份合法性
+        if (!CareerStageEnum.isValid(careerStage)) {
+            throw new BusinessException("身份选择无效");
+        }
+        // 2. 查询用户
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        // 3. 更新profile_json中的careerStage
+        UserProfile profile = JSONUtil.toBean(user.getProfileJson(), UserProfile.class);
+        profile.setCareerStage(careerStage);
+        user.setProfileJson(JSONUtil.toJsonStr(profile));
+        // 4. 激活用户
+        user.setStatus("ACTIVE");
+        userMapper.updateById(user);
+    }
 
     /**
      * 登录核心逻辑：查询用户 → 密码校验 → 生成JWT令牌
@@ -129,4 +146,55 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Integer count = userMapper.countByUsername(username);
         return count != null && count > 0;
     }
+
+
+    @Override
+    public void changePassword(UserLoginDTO loginDTO) {
+        // 根据用户名查找用户
+        User user = userMapper.selectByUsername(loginDTO.getUsername());
+
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 使用BCrypt加密新密码
+        String encodedPassword = passwordEncoder.encode(loginDTO.getPassword());
+
+        // 更新密码
+        user.setPassword(encodedPassword);
+        userMapper.updateById(user);
+    }
+
+
+    /**
+     * 忘记密码-重置逻辑（无需验证码）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void forgotPasswordReset(ForgotPasswordResetDTO dto) {
+        // 1. 校验用户名是否存在
+        User user = userMapper.selectByUsername(dto.getUsername());
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 校验两次密码是否一致（忘记密码场景必须加，避免输入错误）
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new BusinessException("两次输入的密码不一致");
+        }
+
+        // 3. 密码加密（与原有修改密码逻辑一致，保持加密方式统一）
+        String encodedPassword = passwordEncoder.encode(dto.getNewPassword());
+
+        // 4. 更新密码到数据库
+        user.setPassword(encodedPassword);
+        userMapper.updateById(user);
+    }
+
+
+
+
+
+
+
 }

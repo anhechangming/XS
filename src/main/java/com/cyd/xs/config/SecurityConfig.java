@@ -49,7 +49,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         // 放行注册、登录接口
-                        .requestMatchers("/api/user/register", "/api/user/login").permitAll()
+                        .requestMatchers("/api/user/register", "/api/user/login","/api/user/identity","/api/user/forgotpassword").permitAll()
                         // 其他接口需要认证
                         .anyRequest().authenticated()
                 );

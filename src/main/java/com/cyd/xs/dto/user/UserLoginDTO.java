@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+// 用户登录DTO
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
