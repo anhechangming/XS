@@ -13,7 +13,7 @@ spring:
     enabled: true
 
 jwt:
-  secret: six-xinsheng12345678910111213141516171819202122
+  secret: LIEHXRVISayW2fZDeuG/alNnbYLMZyQfbUH2nFweb3M=
   expiration-ms: 900000   # 15m
   refresh-expiration-ms: 604800000  # 7 days
 

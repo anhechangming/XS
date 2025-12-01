@@ -6,7 +6,9 @@ import com.cyd.xs.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
+/*
+* 用户认证接口
+ */
 
 @RestController
 @RequestMapping("/api/user")

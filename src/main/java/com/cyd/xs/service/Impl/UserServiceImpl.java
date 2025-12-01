@@ -1,9 +1,15 @@
 package com.cyd.xs.service.Impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.json.JSONUtil;
 import com.cyd.xs.config.JwtConfig;
+import com.cyd.xs.dto.profile.DTO.UserPrivacyUpdateDTO;
+import com.cyd.xs.dto.profile.DTO.UserProfileUpdateDTO;
+import com.cyd.xs.dto.profile.VO.UserPrivacyVO;
+import com.cyd.xs.dto.profile.VO.UserProfileVO;
 import com.cyd.xs.dto.user.*;
 import com.cyd.xs.entity.User.*;
 import com.cyd.xs.exception.BusinessException;
@@ -14,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 
 
 import java.time.LocalDateTime;
@@ -192,6 +199,105 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
 
+    /**
+     * 获取个人基础信息：从User表中取基础字段 + 解析profile_json
+     */
+    @Override
+    public UserProfileVO getPersonalProfile(String username) {
+        // 1. 根据username查询用户
+        User user = userMapper.selectByUsername(username);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 解析profile_json为UserProfile对象
+        UserProfile userProfile = JSONUtil.toBean(user.getProfileJson(), UserProfile.class);
+        // 注意：User实体中的displayName和UserProfile中的displayname可能重复，以User表的displayName为准
+        // （你之前的UserProfile中displayname字段名可能写错了，建议统一为displayName）
+
+        // 3. 组装VO返回
+        UserProfileVO vo = new UserProfileVO();
+        vo.setAvatarUrl(user.getAvatarUrl());
+        vo.setDisplayName(user.getDisplayName()); // 取User表的displayName
+        vo.setBio(userProfile.getBio());
+        vo.setCareerStage(userProfile.getCareerStage());
+        vo.setFields(userProfile.getFields());
+        vo.setLocation(userProfile.getLocation());
+        vo.setEducation(userProfile.getEducation());
+        return vo;
+    }
+
+    /**
+     * 编辑个人基础信息：更新User表的基础字段 + 更新profile_json
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePersonalProfile(String username, UserProfileUpdateDTO updateDTO) {
+        // 1. 查询用户
+        User user = userMapper.selectByUsername(username);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 更新User表的基础字段（displayName）
+        user.setDisplayName(updateDTO.getDisplayName());
+
+        // 3. 解析原profile_json，更新扩展信息
+        UserProfile userProfile = JSONUtil.toBean(user.getProfileJson(), UserProfile.class);
+        userProfile.setBio(updateDTO.getBio());
+        userProfile.setCareerStage(updateDTO.getCareerStage());
+        userProfile.setFields(updateDTO.getFields());
+        userProfile.setLocation(updateDTO.getLocation());
+        userProfile.setEducation(updateDTO.getEducation());
+        // 将更新后的UserProfile重新转为JSON字符串
+        user.setProfileJson(JSONUtil.toJsonStr(userProfile));
+
+        // 4. 保存到数据库
+        userMapper.updateById(user);
+    }
+
+
+    /**
+     * 查询隐私设置：解析privacy_json为UserPrivacyVO
+     */
+    @Override
+    public UserPrivacyVO getPrivacySettings(String username) {
+        User user = userMapper.selectByUsername(username);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        // 解析privacy_json（如果为空，初始化默认值）
+        UserPrivacy privacy = JSONUtil.toBean(
+                StringUtils.isEmpty(user.getPrivacyJson()) ? "{}" : user.getPrivacyJson(),
+                UserPrivacy.class
+        );
+        // 转换为VO返回
+        UserPrivacyVO vo = new UserPrivacyVO();
+        BeanUtil.copyProperties(privacy, vo);
+        return vo;
+    }
+
+    /**
+     * 修改隐私设置：更新privacy_json
+     */
+    @Override
+    @Transactional
+    public void updatePrivacySettings(String username, UserPrivacyUpdateDTO updateDTO) {
+        User user = userMapper.selectByUsername(username);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        // 先查询原隐私设置（保留未修改的字段）
+        UserPrivacy privacy = JSONUtil.toBean(
+                StringUtils.isEmpty(user.getPrivacyJson()) ? "{}" : user.getPrivacyJson(),
+                UserPrivacy.class
+        );
+        // 覆盖修改的字段（空值不覆盖）
+        BeanUtil.copyProperties(updateDTO, privacy, CopyOptions.create().ignoreNullValue());
+        // 更新privacy_json字段
+        user.setPrivacyJson(JSONUtil.toJsonStr(privacy));
+        userMapper.updateById(user);
+    }
 
 
 

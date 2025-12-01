@@ -1,19 +1,17 @@
-package com.cyd.xs.entity.User;
+package com.cyd.xs.dto.profile.DTO;
 
 import lombok.Data;
-/**
- * 用户隐私设置
- */
+
 import java.util.Map;
 
-// 隐私设置（privacy_json）
 @Data
-public class UserPrivacy {
-    private Boolean hideCompany = true;    // 隐藏公司
-    private Boolean hideSalary = true;     // 隐藏薪资
-    private Boolean hideHistory = false;   // 隐藏浏览历史
-    private Boolean hidePosts = false;     // 隐藏发布内容
-    private Map<String, Object> custom;    // 自定义隐私设置
+public class UserPrivacyUpdateDTO {
+
+    private Boolean hideCompany;
+    private Boolean hideSalary;
+    private Boolean hideHistory;
+    private Boolean hidePosts;
+    private Map<String, Object> custom; // 可选：自定义设置
 
     public Boolean getHideCompany() {
         return hideCompany;

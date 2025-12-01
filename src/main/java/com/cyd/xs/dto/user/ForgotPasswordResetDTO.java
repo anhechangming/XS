@@ -3,7 +3,9 @@ package com.cyd.xs.dto.user;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-
+/**
+ * 忘记密码-重置密码（无需验证码）
+ */
 @Data
 public class ForgotPasswordResetDTO {
     @NotBlank(message = "用户名不能为空")

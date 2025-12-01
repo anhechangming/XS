@@ -1,6 +1,10 @@
 package com.cyd.xs.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.cyd.xs.dto.profile.DTO.UserPrivacyUpdateDTO;
+import com.cyd.xs.dto.profile.DTO.UserProfileUpdateDTO;
+import com.cyd.xs.dto.profile.VO.UserPrivacyVO;
+import com.cyd.xs.dto.profile.VO.UserProfileVO;
 import com.cyd.xs.dto.user.LoginResponseDTO;
 import com.cyd.xs.dto.user.UserLoginDTO;
 import com.cyd.xs.dto.user.UserRegisterDTO;
@@ -45,7 +49,21 @@ public interface UserService extends IService<User> {
      */
     void forgotPasswordReset(ForgotPasswordResetDTO resetdto);
 
+    /**
+     * 获取个人基础信息：从User表中取基础字段 + 解析profile_json
+     */
+    UserProfileVO getPersonalProfile(String username);
+    /**
+     * 编辑个人基础信息：更新User表中的基础字段 + 更新profile_json
+     */
+    void updatePersonalProfile(String username, UserProfileUpdateDTO updateDTO);
+    /*
+    * 获取个人隐私信息：从User表中取隐私字段 + 解析privacy_json
+     */
 
-
-
+    UserPrivacyVO getPrivacySettings(String username);
+    /*
+    * 编辑个人隐私信息：更新User表中的隐私字段 + 更新privacy_json
+     */
+    void updatePrivacySettings(String username, UserPrivacyUpdateDTO updateDTO);
 }

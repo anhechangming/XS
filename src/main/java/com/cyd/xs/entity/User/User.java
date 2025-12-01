@@ -1,5 +1,8 @@
 package com.cyd.xs.entity.User;
 
+/*
+ * 用户实体类
+ */
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

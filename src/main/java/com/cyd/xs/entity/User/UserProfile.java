@@ -1,7 +1,9 @@
 package com.cyd.xs.entity.User;
 
 import lombok.Data;
-
+/*
+ * 用户扩展信息
+ */
 import java.util.List;
 
 // 扩展信息（profile_json）

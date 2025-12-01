@@ -1,5 +1,7 @@
 package com.cyd.xs.entity.User;
-
+/*
+ * @Description: 职业阶段枚举
+ */
 public enum CareerStageEnum {
 
     STUDENT("学生"),
