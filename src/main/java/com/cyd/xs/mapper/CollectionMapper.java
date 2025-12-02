@@ -16,4 +16,9 @@ public interface CollectionMapper extends BaseMapper<Collection> {
     // 统计文件夹下的收藏数
     @Select("SELECT COUNT(*) FROM collections WHERE folder_id = #{folderId} AND user_id = #{userId}")
     Integer countCollectionsInFolder(@Param("folderId") Long folderId, @Param("userId") Long userId);
+
+    // 统计内容收藏数
+    @Select("SELECT COUNT(1) FROM collections WHERE entity_id = #{entityId}")
+    Integer countCollectionByEntityId(@Param("entityId") Long entityId);
+
 }

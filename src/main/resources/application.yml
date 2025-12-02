@@ -17,5 +17,7 @@ jwt:
   expiration-ms:  86400000    # 24H
   refresh-expiration-ms: 604800000  # 7 days
 
-
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印 SQL 到控制台
 
