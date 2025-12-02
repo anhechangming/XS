@@ -7,6 +7,7 @@
 
 ### 1. 配置与依赖
 - **MyBatisPlus配置**：在 `config` 包中添加 `MyBatisPlusConfig` 配置类
+- **以下依赖调整是在进行第四、五、六、七部分相关模块的接口设计与基础开发时做出的修改，并未push到github，请结合实际情况参考修改**
 - **依赖调整**：
   - `pom.xml` 中完善了 Lombok 插件配置，指定版本为 `1.18.30`
   - `pom.xml` 文件中修改的 `maven-compiler-plugin` 配置部分的完整代码：
