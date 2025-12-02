@@ -14,6 +14,8 @@ spring:
 
 jwt:
   secret: LIEHXRVISayW2fZDeuG/alNnbYLMZyQfbUH2nFweb3M=
-  expiration-ms: 900000   # 15m
+  expiration-ms:  86400000    # 24H
   refresh-expiration-ms: 604800000  # 7 days
+
+
 

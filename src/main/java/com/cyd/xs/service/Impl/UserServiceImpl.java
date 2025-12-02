@@ -8,25 +8,32 @@ import cn.hutool.json.JSONUtil;
 import com.cyd.xs.config.JwtConfig;
 import com.cyd.xs.dto.profile.DTO.UserPrivacyUpdateDTO;
 import com.cyd.xs.dto.profile.DTO.UserProfileUpdateDTO;
+import com.cyd.xs.dto.profile.VO.PersonalHomePageVO;
+import com.cyd.xs.dto.profile.VO.UserDataStatsVO;
 import com.cyd.xs.dto.profile.VO.UserPrivacyVO;
 import com.cyd.xs.dto.profile.VO.UserProfileVO;
 import com.cyd.xs.dto.user.*;
 import com.cyd.xs.entity.User.*;
 import com.cyd.xs.exception.BusinessException;
-import com.cyd.xs.mapper.UserMapper;
+import com.cyd.xs.mapper.*;
 import com.cyd.xs.service.UserService;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 
 import java.time.LocalDateTime;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserMapper userMapper;
@@ -36,6 +43,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private JwtConfig jwtConfig;
+
+    @Autowired
+    private UserBrowseHistoryMapper browseHistoryMapper; // 浏览历史表 Mapper
+
+    @Autowired
+    private UserGroupMapper userGroupMapper; // 用户-圈子关联表 Mapper
+
+    @Autowired
+    private EntityMapper entityMapper;          // 帖子表 Mapper（已补充的表）
+
+    @Autowired
+    private CollectionMapper collectionMapper; // 收藏表 Mapper
+
+    @Autowired
+    private GroupMapper groupMapper;  // 圈子表 Mapper
+
 
     /**
      * 注册核心逻辑：参数校验 → 密码加密 → 组装用户信息 → 保存数据库
@@ -129,7 +152,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         // 3. 生成JWT令牌
-        String token = jwtConfig.generateToken(user.getId().toString(), user.getRole());
+        String token = jwtConfig.generateToken(user.getId().toString());
         LocalDateTime expireTime = jwtConfig.getExpireTime();
 
         // 4. 组装响应DTO
@@ -297,6 +320,118 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 更新privacy_json字段
         user.setPrivacyJson(JSONUtil.toJsonStr(privacy));
         userMapper.updateById(user);
+    }
+
+     /**
+     * 获取个人主页所有核心数据（基础信息+隐私设置+数据统计数）
+     */
+
+     @Override
+     public PersonalHomePageVO getPersonalHomePage(String username) {
+         // 1. 查询用户核心信息（users 表）
+         User user = userMapper.selectByUsername(username);
+         if (user == null) {
+             throw new BusinessException("用户不存在");
+         }
+         Long userId = user.getId();
+
+         // 2. 组装基础信息（解析 profile_json）
+         UserProfileVO baseInfo = buildBaseInfo(user);
+
+         // 3. 组装隐私设置（解析 privacy_json）
+         UserPrivacyVO privacySettings = buildPrivacySettings(user);
+
+         // 4. 组装数据统计数（查询各关联表的数量）
+         UserDataStatsVO dataStats = buildDataStats(userId);
+
+         // 5. 聚合返回
+         PersonalHomePageVO homePageVO = new PersonalHomePageVO();
+         homePageVO.setBaseInfo(baseInfo);
+         homePageVO.setPrivacySettings(privacySettings);
+         homePageVO.setDataStats(dataStats);
+         return homePageVO;
+     }
+
+    /**
+     * 组装基础信息（解析 profile_json）
+     */
+    private UserProfileVO buildBaseInfo(User user) {
+        UserProfileVO vo = new UserProfileVO();
+        // 基础字段直接从 user 表取
+        vo.setAvatarUrl(user.getAvatarUrl());
+        vo.setDisplayName(user.getDisplayName());
+        // 解析 profile_json 扩展字段
+        UserProfile profile = JSONUtil.toBean(
+                user.getProfileJson() == null ? "{}" : user.getProfileJson(),
+                UserProfile.class
+        );
+        vo.setBio(profile.getBio());
+        vo.setCareerStage(profile.getCareerStage());
+        vo.setFields(profile.getFields());
+        vo.setLocation(profile.getLocation());
+        vo.setEducation(profile.getEducation());
+        return vo;
+    }
+
+    /**
+     * 组装隐私设置（解析 privacy_json）
+     */
+    private UserPrivacyVO buildPrivacySettings(User user) {
+        // 解析 privacy_json，为空则用默认值
+        return JSONUtil.toBean(
+                user.getPrivacyJson() == null ? "{}" : user.getPrivacyJson(),
+                UserPrivacyVO.class
+        );
+    }
+
+
+    /**
+     * 组装数据统计数（适配新表：entities 表替代 posts 表，关联 groups 表过滤有效小组）
+     */
+    private UserDataStatsVO buildDataStats(Long userId) {
+        UserDataStatsVO statsVO = new UserDataStatsVO();
+
+
+        // 1. 浏览历史数（不变：user_browse_history 表）
+        statsVO.setBrowseHistoryCount(browseHistoryMapper.countByUserId(userId));
+
+        // 2. 我的圈子数（修改：关联 groups 表，只统计状态为正常的小组）
+        // 逻辑：查询 user_groups 中该用户的记录，且关联的 groups 表状态为非删除/禁用
+        statsVO.setGroupCount(userGroupMapper.countValidGroupsByUserId(userId));
+
+        // 3. 我发布的内容数（修改：从 entities 表查询，type 可按需过滤）
+        // 说明：entities 表的 type 字段区分内容类型（如 'post'=帖子、'topic'=话题），status 为 'PUBLISHED' 表示已发布
+        statsVO.setPostCount(entityMapper.countByAuthorIdAndStatus(userId, "PUBLISHED"));
+
+        // 4. 我的收藏数（不变：collections 表）
+        statsVO.setCollectionCount(collectionMapper.countByUserId(userId));
+
+
+        return statsVO;
+    }
+
+
+    /**
+     * 新增：通过 userId 获取个人主页数据（替代原有的 username 查询）
+     */
+    @Override
+    public PersonalHomePageVO getPersonalHomePageByUserId(Long userId) {
+        // 1. 用 userId 查询用户（关键：不再用 username）
+        User user = userMapper.selectById(userId); // 改为 selectById（根据主键查询）
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 后续逻辑不变（组装基础信息、隐私设置、数据统计数）
+        UserProfileVO baseInfo = buildBaseInfo(user);
+        UserPrivacyVO privacySettings = buildPrivacySettings(user);
+        UserDataStatsVO dataStats = buildDataStats(userId); // 本来就传的是 userId，无需修改
+
+        PersonalHomePageVO homePageVO = new PersonalHomePageVO();
+        homePageVO.setBaseInfo(baseInfo);
+        homePageVO.setPrivacySettings(privacySettings);
+        homePageVO.setDataStats(dataStats);
+        return homePageVO;
     }
 
 

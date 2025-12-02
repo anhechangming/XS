@@ -5,11 +5,20 @@ import lombok.Data;
 // 数据管理VO（示例，根据你的页面字段调整）
 @Data
 public class UserDataStatsVO {
-
+    private Integer browseHistoryCount; // 浏览历史数
     private Integer groupCount;         // 我的圈子数
     private Integer postCount;          // 我发布的帖子数
     private Integer collectionCount;    // 我的收藏数
-    private Integer likesReceived = 0;     // 获赞数
+  //  private Integer likesReceived = 0;     // 获赞数
+
+
+    public Integer getBrowseHistoryCount() {
+        return browseHistoryCount;
+    }
+
+    public void setBrowseHistoryCount(Integer browseHistoryCount) {
+        this.browseHistoryCount = browseHistoryCount;
+    }
 
     public Integer getGroupCount() {
         return groupCount;
@@ -35,11 +44,5 @@ public class UserDataStatsVO {
         this.collectionCount = collectionCount;
     }
 
-    public Integer getLikesReceived() {
-        return likesReceived;
-    }
 
-    public void setLikesReceived(Integer likesReceived) {
-        this.likesReceived = likesReceived;
-    }
 }

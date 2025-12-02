@@ -1,6 +1,7 @@
 package com.cyd.xs.controller.profile;
 
 import com.cyd.xs.Response.Result;
+import com.cyd.xs.Utils.SecurityUtils;
 import com.cyd.xs.dto.profile.DTO.UserPrivacyUpdateDTO;
 import com.cyd.xs.dto.profile.DTO.UserProfileUpdateDTO;
 import com.cyd.xs.dto.profile.VO.PersonalHomePageVO;
@@ -9,16 +10,23 @@ import com.cyd.xs.dto.profile.VO.UserProfileVO;
 import com.cyd.xs.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 
 /**
  * 个人中心接口
  */
+//@Slf4j
 @RestController
 @RequestMapping("/api/user/profile")
 public class UserProfileController {
+
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(UserProfileController.class);
+
+
     @Autowired
     private UserService userService;
 
@@ -82,10 +90,18 @@ public class UserProfileController {
      */
     @GetMapping("/homepage")
     public Result<PersonalHomePageVO> getPersonalHomePage(Authentication authentication) {
-        // 从 JWT Token 中获取当前登录用户名
-        String username = authentication.getName();
-        PersonalHomePageVO homePageVO = userService.getPersonalHomePage(username);
+//        // 从 JWT Token 中获取当前登录用户名
+//      //  String username = authentication.getName();
+//        String userId = authentication.getName(); // 改为 userId
+//        System.out.println("Authentication.getName() 返回值：" + userId); // 输出如 "123"（userId），而非 "testuser"（username）
+//    //    PersonalHomePageVO homePageVO = userService.getPersonalHomePage(username);
+//        PersonalHomePageVO homePageVO = userService.getPersonalHomePageByUserId(Long.parseLong(userId)); // 传 userId
+//        return Result.success("获取个人主页成功", homePageVO);
+        Long userId = SecurityUtils.getUserId();  // ✅ 一行代码
+        PersonalHomePageVO homePageVO = userService.getPersonalHomePageByUserId(userId);
         return Result.success("获取个人主页成功", homePageVO);
+
+
     }
 
 }

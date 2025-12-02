@@ -69,14 +69,5 @@ public class AuthController {
 
 
 
-//    /**
-//     * 通过用户ID获取个人主页（推荐，登录态下使用）
-//     * @param userId 用户ID（路径参数）
-//     * @return 个人主页数据
-//     */
-//    @GetMapping("/profile/{userId}")
-//    public Result<UserHomeDTO> getUserProfileById(@PathVariable Long userId) {
-//        UserHomeDTO profile = userProfileService.getHomeProfileById(userId);
-//        return Result.success("获取个人主页成功", profile);
-//    }
+
 }

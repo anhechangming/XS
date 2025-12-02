@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.Claims;
 import java.io.IOException;
 
+
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -38,23 +39,56 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         token = token.substring(7); // 去掉 "Bearer " 前缀
 
-        // 2. 解析令牌，获取用户ID
-        Claims claims = jwtConfig.parseToken(token);
-        String userId = claims.getSubject();
+//        // 2. 解析令牌，获取用户ID
+//        Claims claims = jwtConfig.parseToken(token);
+//        String userId = claims.getSubject();
+//
+//        // 3. 如果用户未认证，自动完成认证
+//        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+//            // 这里简化：UserDetailsService可自定义，从数据库查询用户信息
+//            UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+//            // 创建认证令牌，存入SecurityContext
+//            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+//                    userDetails, null, userDetails.getAuthorities()
+//            );
+//            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//            SecurityContextHolder.getContext().setAuthentication(authToken);
+//        }
 
-        // 3. 如果用户未认证，自动完成认证
-        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // 这里简化：UserDetailsService可自定义，从数据库查询用户信息
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
-            // 创建认证令牌，存入SecurityContext
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities()
-            );
-            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        try {
+            // 2. 解析令牌，获取用户ID
+            Claims claims = jwtConfig.parseToken(token);
+            String userId = claims.getSubject();
+            // 替换第63行为：
+            logger.info("JWT 解析出 userId：" + userId);
+
+            // 3. 如果用户未认证，自动完成认证
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+                // 打印权限（关键调试日志）
+                // 替换第67行为：
+                logger.info("用户 " + userId + " 的权限：" + userDetails.getAuthorities());
+
+
+                // 创建认证令牌
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities()
+                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+                logger.info("用户 " + userId + " 认证成功，权限已设置");
+
+            }
+        } catch (Exception e) {
+            logger.error("JWT 认证失败：", e);
         }
+
 
         // 4. 继续执行后续过滤器
         filterChain.doFilter(request, response);
     }
 }
+
+
+
