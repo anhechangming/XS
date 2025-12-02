@@ -1,0 +1,13 @@
+-- 小组信息
+DROP TABLE IF EXISTS `groups`;
+CREATE TABLE `groups` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '小组ID',
+  `name` VARCHAR(64) NOT NULL COMMENT '小组名称',
+  `intro` VARCHAR(255) NOT NULL COMMENT '小组简介',
+  `avatar` VARCHAR(255) NULL COMMENT '小组头像URL',
+  `activity_type` VARCHAR(64) NULL COMMENT '特色活动类型/描述',
+  `creator_id` BIGINT NOT NULL COMMENT '创建人ID',
+  `status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '状态：pending/active/closed',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;

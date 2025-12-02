@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS `activities`;
+CREATE TABLE `activities` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '活动ID',
+  `title` VARCHAR(255) NOT NULL COMMENT '活动标题',
+  `description` TEXT NULL COMMENT '活动描述/详情',
+  `image_url` VARCHAR(255) NULL COMMENT '轮播图URL',
+  `start_time` DATETIME NOT NULL COMMENT '活动开始时间',
+  `end_time` DATETIME NOT NULL COMMENT '活动结束时间',
+  `participant_count` INT NOT NULL DEFAULT 0 COMMENT '参与人数',
+  `is_hot` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否热门',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
