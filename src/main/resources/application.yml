@@ -1,19 +1,43 @@
 spring:
+  # 字符编码配置
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  # 数据库配置
   datasource:
     url: jdbc:mysql://localhost:3306/xs_db?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: root
     password: 123456
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: validate  # 若使用update 模式，自动创建或更新表结构
     properties:
       hibernate:
         format_sql: true
   flyway:
     enabled: true
 
+
 jwt:
   secret: LIEHXRVISayW2fZDeuG/alNnbYLMZyQfbUH2nFweb3M=
   expiration-ms: 900000   # 15m
   refresh-expiration-ms: 604800000  # 7 days
+
+# 开启SQL日志
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    com.cyd.xs: DEBUG
+    com.cyd.xs.mapper: TRACE
+    com.cyd.xs.service: DEBUG
+    com.cyd.xs.controller: DEBUG
+    org.springframework.jdbc: DEBUG
+    org.springframework.transaction: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
 

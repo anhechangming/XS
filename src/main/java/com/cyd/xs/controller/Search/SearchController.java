@@ -68,9 +68,24 @@ public class SearchController {
     }
 
     private String getUserIdFromAuthentication(Authentication authentication) {
+
         if (authentication != null && authentication.isAuthenticated()) {
-            return authentication.getName(); // 假设用户名就是userId
+            String username = authentication.getName();
+            System.out.println("认证用户: " + username);
+            // 这里需要根据实际情况从用户名获取用户ID
+            // 假设用户名就是用户ID，或者可以从数据库查询
+            return username;
+        } else {
+            System.out.println("未认证用户，使用默认用户ID");
+            // 未认证用户返回默认ID，或者返回null
+            // 根据业务需求，可以返回一个默认的匿名用户ID
+            return "anonymous"; // 或者返回 "guest"，根据业务调整
         }
-        throw new RuntimeException("用户未认证");
+
+
+//        if (authentication != null && authentication.isAuthenticated()) {
+//            return authentication.getName(); // 假设用户名就是userId
+//        }
+//        throw new RuntimeException("用户未认证");
     }
 }

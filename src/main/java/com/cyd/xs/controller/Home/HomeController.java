@@ -4,6 +4,7 @@ import com.cyd.xs.Response.Result;
 import com.cyd.xs.dto.Home.HomeDTO;
 import com.cyd.xs.dto.Home.RecommendRefreshDTO;
 import com.cyd.xs.service.HomeService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,14 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/home")
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 public class HomeController {
 
     private final HomeService homeService;
 
-    public HomeController(HomeService homeService) {
-        this.homeService = homeService;
-    }
 
     /**
      * 获取首页数据（含热门活动、推荐内容）
@@ -29,20 +27,26 @@ public class HomeController {
     @GetMapping
     public ResponseEntity<Result<?>> getHomeData(Authentication authentication) {
         try {
+            System.out.println("开始获取首页数据...");
             String userId = getUserIdFromAuthentication(authentication);
+            System.out.println("用户ID: " + userId);
             HomeDTO homeDTO = homeService.getHomeData(userId);
             return ResponseEntity.ok(Result.success("获取成功", homeDTO));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Result.error("获取首页数据失败"));
+            System.err.println("获取首页数据失败: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(Result.error("获取首页数据失败: " + e.getMessage()));
         }
     }
+
+
 
     /**
      * 推荐内容换一批
      * 文档路径：GET /api/v1/home/recommend/refresh
      */
     @GetMapping("/recommend/refresh")
-    public ResponseEntity<Result<?>> refreshRecommend(
+    public ResponseEntity<Result<RecommendRefreshDTO>> refreshRecommend(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "5") Integer pageSize,
             Authentication authentication) {
@@ -51,16 +55,37 @@ public class HomeController {
             RecommendRefreshDTO result = homeService.refreshRecommend(userId, pageNum, pageSize);
             return ResponseEntity.ok(Result.success("推荐内容刷新成功", result));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Result.error("推荐内容刷新失败"));
+            System.err.println("推荐内容刷新失败: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(Result.error("推荐内容刷新失败"));        }
+    }
+
+    /**
+     * 获取用户ID，支持未认证用户
+     */
+    private String getUserIdFromAuthentication(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            String username = authentication.getName();
+            System.out.println("认证用户: " + username);
+            // 这里需要根据实际情况从用户名获取用户ID
+            // 假设用户名就是用户ID，或者可以从数据库查询
+            return username;
+        } else {
+            System.out.println("未认证用户，使用默认用户ID");
+            // 未认证用户返回默认ID，或者返回null
+            // 根据业务需求，可以返回一个默认的匿名用户ID
+            return "anonymous"; // 或者返回 "guest"，根据业务调整
         }
     }
 
-    private String getUserIdFromAuthentication(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            return authentication.getName(); // 假设用户名就是userId
-        }
-        throw new RuntimeException("用户未认证");
-    }
+
+
+//    private String getUserIdFromAuthentication(Authentication authentication) {
+//        if (authentication != null && authentication.isAuthenticated()) {
+//            return authentication.getName(); // 假设用户名就是userId
+//        }
+//        throw new RuntimeException("用户未认证");
+//    }
 
 
 

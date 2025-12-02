@@ -3,11 +3,9 @@ package com.cyd.xs.controller.profile;
 import com.cyd.xs.Response.Result;
 import com.cyd.xs.dto.profile.DTO.UserPrivacyUpdateDTO;
 import com.cyd.xs.dto.profile.DTO.UserProfileUpdateDTO;
-import com.cyd.xs.dto.profile.VO.PersonalHomePageVO;
 import com.cyd.xs.dto.profile.VO.UserPrivacyVO;
 import com.cyd.xs.dto.profile.VO.UserProfileVO;
 import com.cyd.xs.service.UserService;
-import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -81,10 +79,10 @@ public class UserProfileController {
      * 说明：前端需并行调用浏览历史列表接口，默认显示浏览历史内容
      */
     @GetMapping("/homepage")
-    public Result<PersonalHomePageVO> getPersonalHomePage(Authentication authentication) {
+    public Result<UserProfileVO> getPersonalHomePage(Authentication authentication) {
         // 从 JWT Token 中获取当前登录用户名
         String username = authentication.getName();
-        PersonalHomePageVO homePageVO = userService.getPersonalHomePage(username);
+        UserProfileVO homePageVO = userService.getPersonalProfile(username);
         return Result.success("获取个人主页成功", homePageVO);
     }
 

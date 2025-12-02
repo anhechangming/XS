@@ -10,9 +10,6 @@ import java.util.List;
 @Mapper
 public interface SearchHistoryMapper {
 
-    @Insert("INSERT INTO search_histories (id, user_id, keyword, created_at) VALUES (#{id}, #{userId}, #{keyword}, NOW())")
-    void saveSearchHistory(String id, String userId, String keyword);
-
     @Insert("INSERT INTO search_histories (user_id, keyword, created_at) VALUES (#{userId}, #{keyword}, NOW())")
     void saveSearchHistory(String userId, String keyword);
 
