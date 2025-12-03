@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import com.cyd.xs.entity.User.User;
+import org.apache.ibatis.annotations.Select;
 
 @Mapper
 public interface UserMapper extends BaseMapper<com.cyd.xs.entity.User.User> {
@@ -13,6 +14,15 @@ public interface UserMapper extends BaseMapper<com.cyd.xs.entity.User.User> {
     // 校验用户名是否已存在
     Integer countByUsername(@Param("username") String username);
 
+
+    @Select("SELECT * FROM users WHERE id = #{userId}")
+    User findById(Long userId);
+
+    @Select("SELECT role FROM users WHERE id = #{userId}")
+    String getUserRole(Long userId);
+
+    @Select("SELECT display_name FROM users WHERE id = #{userId}")
+    String getUserDisplayName(Long userId);
     /**
      * 根据用户名查询用户信息
      * @param username 用户名

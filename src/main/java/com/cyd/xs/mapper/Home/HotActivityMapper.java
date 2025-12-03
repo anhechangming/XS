@@ -1,7 +1,7 @@
 package com.cyd.xs.mapper.Home;
 
 
-import com.cyd.xs.entity.User.HotActivity;
+import com.cyd.xs.entity.Home.Activity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -10,6 +10,15 @@ import java.util.List;
 @Mapper
 public interface HotActivityMapper {
 
-    @Select("SELECT * FROM hot_activities WHERE status = 'active' ORDER BY participant_count DESC, created_at DESC LIMIT #{limit}")
-    List<HotActivity> findHotActivities(int limit);
+    @Select("SELECT \n" +
+            "    id,\n" +
+            "    title,\n" +
+            "    start_time,\n" +
+            "    end_time,\n" +
+            "    participant_count\n" +
+            "FROM activities\n" +
+            "WHERE is_hot = 1 AND start_time <= NOW() AND end_time >= NOW()\n" +
+            "ORDER BY participant_count DESC\n" +
+            "LIMIT 3;")
+    List<Activity> findHotActivities(int limit);
 }
