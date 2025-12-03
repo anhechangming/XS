@@ -1,20 +1,16 @@
 package com.cyd.xs.service.Impl;
 
 import com.cyd.xs.dto.Search.SearchDTO;
-import com.cyd.xs.entity.User.Home.HomeContent;
-import com.cyd.xs.entity.User.Topic.Topic;
-import com.cyd.xs.mapper.Home.HomeContentMapper;
 import com.cyd.xs.mapper.Search.SearchHistoryMapper;
-import com.cyd.xs.mapper.Topic.TopicMapper;
+import com.cyd.xs.mapper.UserContentMapper;
+import com.cyd.xs.mapper.UserSearchMapper;
 import com.cyd.xs.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -23,8 +19,8 @@ import java.util.stream.Collectors;
 public class SearchServiceImpl implements SearchService {
 
     private final SearchHistoryMapper searchHistoryMapper;
-    private final TopicMapper topicMapper;
-    private final HomeContentMapper homeContentMapper;
+    private final UserContentMapper userContentMapper;
+    private final UserSearchMapper userSearchMapper;
 
     @Override
     public SearchDTO getSearchHistoryAndHot(String userId) {
@@ -33,11 +29,11 @@ public class SearchServiceImpl implements SearchService {
         SearchDTO searchDTO = new SearchDTO();
 
         try {
-            // 个人搜索历史
+            // 个人搜索历史（最多10条，按时间倒序）
             List<String> histories = searchHistoryMapper.findRecentSearchHistory(userId, 10);
             searchDTO.setSearchHistory(histories);
 
-            // 热门搜索
+            // 热门搜索（10条，按热度倒序）
             List<String> hotKeywords = searchHistoryMapper.findHotKeywords(10);
             searchDTO.setHotSearch(hotKeywords.isEmpty() ?
                     Arrays.asList("秋招面试", "简历优化", "面试技巧", "职业规划", "职场心理",
@@ -79,54 +75,104 @@ public class SearchServiceImpl implements SearchService {
 
         try {
             // 记录搜索历史
-            searchHistoryMapper.saveSearchHistory(userId, keyword);
+            if (!"anonymous".equals(userId)) {
+                searchHistoryMapper.saveSearchHistory(userId, keyword);
+            }
 
             // 计算分页偏移量
             int offset = (pageNum - 1) * pageSize;
 
-            // 根据type返回不同结果
-            if (type == null || "topic".equals(type)) {
-                List<Topic> topics = topicMapper.searchTopics(keyword, sort, offset, pageSize);
-                List<SearchDTO.TopicResult> topicResults = topics.stream().map(topic -> {
-                    SearchDTO.TopicResult tr = new SearchDTO.TopicResult();
-                    tr.setId(topic.getId());
-                    tr.setTitle(topic.getTitle());
-                    tr.setDesc(topic.getGuideText()); // 使用guideText作为描述
-                    tr.setHotValue(topic.getInteractiveCount()); // 使用interactiveCount作为热度值
-                    // 假设tags字段存储的是逗号分隔的标签
-                    if (topic.getTag() != null) {
-                        tr.setTags(Arrays.asList(topic.getTag().split(",")));
-                    }
-                    tr.setParticipantCount(topic.getParticipantCount());
-                    tr.setLink("/api/v1/topic/" + topic.getId());
-                    return tr;
-                }).collect(Collectors.toList());
-                searchDTO.setList(Collections.singletonList(topicResults));
-                searchDTO.setTotal(topicMapper.countSearchTopics(keyword));
-            }
+            // 如果type为null或"all"，则搜索所有类型
+            if (type == null || "all".equals(type)) {
+                // 搜索用户内容（话题和内容）
+                List<Map<String, Object>> contentResults = userContentMapper.searchUserContents(
+                        keyword, null, sort, offset, pageSize);
+                Long contentTotal = userContentMapper.countSearchUserContents(keyword, null);
 
-            if (type == null || "content".equals(type)) {
-                List<HomeContent> contents = homeContentMapper.searchContents(keyword, sort, offset, pageSize);
-                List<SearchDTO.ContentResult> contentResults = contents.stream().map(content -> {
-                    SearchDTO.ContentResult cr = new SearchDTO.ContentResult();
-                    cr.setId(content.getId());
-                    cr.setTitle(content.getTitle());
-                    cr.setAuthor(content.getAuthorName());
-                    cr.setLink("/api/v1/content/" + content.getId());
-                    return cr;
-                }).collect(Collectors.toList());
-                searchDTO.setList(Collections.singletonList(contentResults));
-                if (type != null && "content".equals(type)) {
-                    searchDTO.setTotal(homeContentMapper.countSearchContents(keyword));
+                // 搜索用户
+                List<Map<String, Object>> userResults = userSearchMapper.searchUsers(
+                        keyword, offset, pageSize);
+                Long userTotal = userSearchMapper.countSearchUsers(keyword);
+
+                // 合并结果
+                List<Object> allResults = new ArrayList<>();
+                allResults.addAll(convertToContentResult(contentResults, "content"));
+                allResults.addAll(convertToUserResult(userResults));
+
+                searchDTO.setList(allResults);
+                searchDTO.setTotal(contentTotal + userTotal);
+
+            } else if ("topic".equals(type) || "content".equals(type)) {
+                // 搜索用户内容（可指定为topic或content）
+                List<Map<String, Object>> contentResults = userContentMapper.searchUserContents(
+                        keyword, type, sort, offset, pageSize);
+                Long total = userContentMapper.countSearchUserContents(keyword, type);
+
+                List<SearchDTO.ContentResult> contentList = convertToContentResult(contentResults, type);
+                searchDTO.setList(new ArrayList<>(contentList));
+                searchDTO.setTotal(total);
+
+            } else if ("user".equals(type) || "expert".equals(type)) {
+                // 搜索用户，专家是用户的子集
+                List<Map<String, Object>> userResults = userSearchMapper.searchUsers(
+                        keyword, offset, pageSize);
+                Long total = userSearchMapper.countSearchUsers(keyword);
+
+                // 如果搜索专家，过滤角色为expert的
+                if ("expert".equals(type)) {
+                    userResults = userResults.stream()
+                            .filter(user -> "expert".equals(user.get("role")))
+                            .collect(Collectors.toList());
+                    total = (long) userResults.size();
                 }
-            }
 
-            // 其他类型：group, user, expert 可以类似实现
+                List<SearchDTO.UserResult> userList = convertToUserResult(userResults);
+                searchDTO.setList(new ArrayList<>(userList));
+                searchDTO.setTotal(total);
+            }
+            // 其他类型：group等可以后续实现
 
             return searchDTO;
         } catch (Exception e) {
             log.error("搜索失败: {}", e.getMessage(), e);
             throw new RuntimeException("搜索失败");
         }
+    }
+
+    // 转换用户内容结果为ContentResult
+    private List<SearchDTO.ContentResult> convertToContentResult(List<Map<String, Object>> contentResults, String type) {
+        return contentResults.stream().map(content -> {
+            SearchDTO.ContentResult cr = new SearchDTO.ContentResult();
+            cr.setId(String.valueOf(content.get("id")));
+            cr.setTitle((String) content.get("title"));
+
+            // 设置描述（使用content_summary）
+            String summary = (String) content.get("content_summary");
+            if (summary != null && summary.length() > 100) {
+                summary = summary.substring(0, 100) + "...";
+            }
+            // 注意：ContentResult中没有desc字段，需要调整DTO或使用其他字段
+
+            // 设置链接
+            if ("topic".equals(type)) {
+                cr.setLink("/api/v1/topic/" + content.get("id"));
+            } else {
+                cr.setLink("/api/v1/content/" + content.get("id"));
+            }
+            return cr;
+        }).collect(Collectors.toList());
+    }
+
+    // 转换用户结果为UserResult
+    private List<SearchDTO.UserResult> convertToUserResult(List<Map<String, Object>> userResults) {
+        return userResults.stream().map(user -> {
+            SearchDTO.UserResult ur = new SearchDTO.UserResult();
+            ur.setId(String.valueOf(user.get("id")));
+            ur.setNickname((String) user.get("display_name"));
+            ur.setIdentity((String) user.get("role"));
+            ur.setAvatar((String) user.get("avatar_url"));
+            ur.setLink("/api/v1/user/" + user.get("id"));
+            return ur;
+        }).collect(Collectors.toList());
     }
 }

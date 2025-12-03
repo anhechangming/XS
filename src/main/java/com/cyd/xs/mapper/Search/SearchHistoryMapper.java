@@ -4,21 +4,43 @@ import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface SearchHistoryMapper {
 
-    @Insert("INSERT INTO search_histories (user_id, keyword, created_at) VALUES (#{userId}, #{keyword}, NOW())")
-    void saveSearchHistory(String userId, String keyword);
+    // 保存搜索历史（使用user_search_history表）
+    @Insert("INSERT INTO user_search_history (user_id, keyword) VALUES (#{userId}, #{keyword})")
+    void saveSearchHistory(@Param("userId") String userId, @Param("keyword") String keyword);
 
-    @Select("SELECT keyword FROM search_histories WHERE user_id = #{userId} ORDER BY created_at DESC LIMIT #{limit}")
-    List<String> findRecentSearchHistory(String userId, int limit);
+    // 获取用户最近的搜索历史
+    @Select("SELECT keyword FROM user_search_history " +
+            "WHERE user_id = #{userId} " +
+            "ORDER BY searched_at DESC " +
+            "LIMIT #{limit}")
+    List<String> findRecentSearchHistory(@Param("userId") String userId, @Param("limit") int limit);
 
-    @Select("SELECT keyword FROM search_histories GROUP BY keyword ORDER BY COUNT(*) DESC, MAX(created_at) DESC LIMIT #{limit}")
-    List<String> findHotKeywords(int limit);
+    // 获取热门搜索关键词（按搜索次数排序）
+    @Select("SELECT keyword, COUNT(*) AS search_count " +
+            "FROM user_search_history " +
+            "GROUP BY keyword " +
+            "ORDER BY search_count DESC " +
+            "LIMIT #{limit}")
+    List<Map<String, Object>> findHotKeywordsWithCount(@Param("limit") int limit);
 
-    @Delete("DELETE FROM search_histories WHERE user_id = #{userId}")
+    // 只返回关键词列表（兼容旧方法）
+    @Select("SELECT keyword FROM (" +
+            "  SELECT keyword, COUNT(*) AS search_count " +
+            "  FROM user_search_history " +
+            "  GROUP BY keyword " +
+            "  ORDER BY search_count DESC " +
+            "  LIMIT #{limit}" +
+            ") t")
+    List<String> findHotKeywords(@Param("limit") int limit);
+
+    @Delete("DELETE FROM user_search_history WHERE user_id = #{userId}")
     int deleteByUserId(String userId);
 }
