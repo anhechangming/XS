@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cyd.xs.mapper.MessageOperateMapper">
+
+    <!-- 1. 批量标记消息为已读 -->
+    <update id="batchMarkRead">
+        UPDATE user_messages
+        SET is_read = 1
+        WHERE user_id = #{userId}
+        AND id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}  <!-- 循环解析 List<Long> ids 为 (1,2,3) 格式 -->
+        </foreach>
+        AND is_read = 0  -- 仅标记未读消息
+    </update>
+
+    <!-- 2. 全部消息标记为已读 -->
+    <update id="markAllRead">
+        UPDATE user_messages
+        SET is_read = 1
+        WHERE user_id = #{userId}
+          AND is_read = 0
+    </update>
+
+    <!-- 3. 批量删除消息 -->
+    <delete id="batchDelete">
+        DELETE FROM user_messages
+        WHERE user_id = #{userId}
+        AND id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 4. 校验消息归属 -->
+    <select id="checkMessageOwner" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM user_messages
+        WHERE user_id = #{userId}
+        AND id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 5. 查询未读消息总数 -->
+    <select id="selectUnreadCount" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM user_messages
+        WHERE user_id = #{userId}
+          AND is_read = 0
+    </select>
+
+
+</mapper>
