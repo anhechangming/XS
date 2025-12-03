@@ -11,6 +11,26 @@ spring:
         format_sql: true
   flyway:
     enabled: true
+    # 文件上传配置（单次请求总大小≤20MB，单文件≤5MB）
+  servlet:
+    multipart:
+      max-request-size: 20MB
+      max-file-size: 5MB
+
+# 自定义图片上传配置
+upload:
+  # 本地存储根路径（建议绝对路径，避免部署问题）
+  local:
+    base-path: D:/2025study/25down/SE/XS/file  # Windows示例
+    # base-path: /home/jobhub/upload/  # Linux示例
+  # 图片访问基础URL（前端通过该URL访问图片）
+  access-base-url: http://localhost:8080/upload/  # 本地开发环境
+  # access-base-url: https://jobhub.com/upload/  # 生产环境（域名+静态资源路径）
+  file:
+    # 支持的文件格式（后缀）
+    supported-suffix: "pdf,doc,docx,ppt,pptx"
+    # 单文件最大大小（20MB，与spring配置一致）
+    max-size: 20971520  # 20*1024*1024 字节
 
 jwt:
   secret: LIEHXRVISayW2fZDeuG/alNnbYLMZyQfbUH2nFweb3M=
@@ -21,3 +41,11 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印 SQL 到控制台
 
+mybatis:
+  # XML 文件所在目录（根据实际项目结构调整）
+  mapper-locations: classpath:mybatis/*.xml
+  # 实体类别名包（避免 XML 中写全类名）
+  type-aliases-package: com.cyd.xs.entity
+  configuration:
+    # 开启驼峰命名自动转换（如数据库 is_read → 实体类 isRead）
+    map-underscore-to-camel-case: true

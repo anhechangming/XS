@@ -59,4 +59,12 @@ public class ResultVO<T> {
         result.setData(null);
         return result;
     }
+
+    // 添加缺失的 error 方法
+    public static <T> ResultVO<T> error(int code, String message) {
+        ResultVO<T> result = new ResultVO<>();
+        result.code = code;
+        result.message = message;
+        return result;
+    }
 }
