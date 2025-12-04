@@ -1,6 +1,6 @@
 package com.cyd.xs.mapper.groups;
 
-import com.cyd.xs.entity.User.Group.GroupNotice;
+import com.cyd.xs.entity.Group.GroupNotice;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 

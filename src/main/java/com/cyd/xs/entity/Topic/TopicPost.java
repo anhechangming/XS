@@ -1,4 +1,4 @@
-package com.cyd.xs.entity.User.Topic;
+package com.cyd.xs.entity.Topic;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

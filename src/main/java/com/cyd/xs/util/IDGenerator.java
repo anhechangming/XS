@@ -3,7 +3,7 @@ package com.cyd.xs.util;
 import cn.hutool.core.util.IdUtil;
 
 public class IDGenerator {
-    public static String generateId() {
+    public static Long generateId() {
         return IdUtil.simpleUUID();
     }
 

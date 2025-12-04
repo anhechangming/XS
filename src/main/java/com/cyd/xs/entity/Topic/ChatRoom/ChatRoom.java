@@ -1,4 +1,4 @@
-package com.cyd.xs.entity.User.Topic.ChatRoom;
+package com.cyd.xs.entity.Topic.ChatRoom;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "chat_rooms")
+@Table(name = "chatrooms")
 public class ChatRoom {
     @Id
     private String id;
@@ -17,11 +17,12 @@ public class ChatRoom {
     private String title;
     private String theme;
     private String status; // preview/ongoing/ended
-    private Integer onlineCount;
-    private String host;
+    private String hostId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String notice;
+    private Integer topicId;
+    private String scope;//可见范围
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

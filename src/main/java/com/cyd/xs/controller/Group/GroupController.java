@@ -3,20 +3,17 @@ package com.cyd.xs.controller.Group;
 import com.cyd.xs.Response.Result;
 import com.cyd.xs.dto.Group.*;
 import com.cyd.xs.service.GroupService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/group")
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 public class GroupController {
 
     private final GroupService groupService;
-
-    public GroupController(GroupService groupService) {
-        this.groupService = groupService;
-    }
     /**
      * 获取小组列表
      * 文档路径：GET /api/v1/group/list
@@ -31,7 +28,8 @@ public class GroupController {
             Authentication authentication) {
         try {
             String userId = getUserIdFromAuthentication(authentication);
-            GroupDTO result = groupService.getGroupList(keyword, tag, sort, pageNum, pageSize);
+            // 修改调用，添加 userId 参数
+            GroupDTO result = groupService.getGroupList(keyword, tag, sort, pageNum, pageSize, Long.valueOf(userId));
             return ResponseEntity.ok(Result.success("获取成功", result));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Result.error("获取失败"));
@@ -48,7 +46,9 @@ public class GroupController {
             Authentication authentication) {
         try {
             String userId = getUserIdFromAuthentication(authentication);
-            GroupCreateResultDTO result = groupService.createGroup(request, userId);
+            // 将 String userId 转换为 Long userId
+            Long userIdLong = Long.parseLong(userId);
+            GroupCreateResultDTO result = groupService.createGroup(request, userIdLong);
             return ResponseEntity.ok(Result.success("小组创建成功，待审核", result));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Result.error("创建失败"));

@@ -1,4 +1,4 @@
-package com.cyd.xs.entity.User.Topic.ChatRoom;
+package com.cyd.xs.entity.Topic.ChatRoom;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -16,10 +16,7 @@ public class ChatRoomMessage {
 
     private String chatRoomId;
     private String userId;
-    private String nickname;
-    private String avatar;
+    //private String avatar;
     private String content;
     private LocalDateTime sendTime;
-    private Boolean isHost;
-    private Boolean isPinned;
 }

@@ -1,6 +1,6 @@
 package com.cyd.xs.mapper.groups;
 
-import com.cyd.xs.entity.User.Group.GroupResource;
+import com.cyd.xs.entity.Group.GroupResource;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

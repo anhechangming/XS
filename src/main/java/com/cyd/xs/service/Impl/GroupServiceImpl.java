@@ -1,7 +1,9 @@
 package com.cyd.xs.service.Impl;
 
 import com.cyd.xs.dto.Group.*;
-import com.cyd.xs.entity.User.Group.*;
+import com.cyd.xs.entity.Group.*;
+import com.cyd.xs.entity.User.UserGroup;
+import com.cyd.xs.mapper.UserGroupMapper;
 import com.cyd.xs.mapper.groups.*;
 import com.cyd.xs.service.GroupService;
 import com.cyd.xs.util.IDGenerator;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,42 +33,52 @@ public class GroupServiceImpl implements GroupService {
     private final GroupResourceMapper groupResourceMapper;
     private final GroupNoticeMapper groupNoticeMapper;
     private final ObjectMapper objectMapper;
+    private final UserGroupMapper userGroupMapper;
+    private final GroupTagMapper groupTagMapper;
 
     @Override
-    public GroupDTO getGroupList(String keyword, String tag, String sort, Integer pageNum, Integer pageSize) {
-        log.info("获取小组列表: keyword={}, tag={}, sort={}, pageNum={}, pageSize={}",
-                keyword, tag, sort, pageNum, pageSize);
+    public GroupDTO getGroupList(String keyword, String tag, String sort, Integer pageNum, Integer pageSize, Long userId) {
+        log.info("获取小组列表: keyword={}, tag={}, sort={}, pageNum={}, pageSize={}, userId={}",
+                keyword, tag, sort, pageNum, pageSize, userId);
 
         try {
             int offset = (pageNum - 1) * pageSize;
-            List<Group> groups = groupMapper.findGroups(keyword, tag, sort, offset, pageSize);
 
-            GroupDTO result = new GroupDTO();
-            result.setTotal(groupMapper.countGroups());
-            result.setPageNum(pageNum);
-            result.setPageSize(pageSize);
+            // 查询小组基本信息，传入 userId
+            List<Group> groups = groupMapper.findGroups(keyword, tag, sort, offset, pageSize, String.valueOf(userId));
 
+            // 查询总数，传入过滤参数
+            Long total = groupMapper.countGroups(keyword, tag);
+
+            // 转换DTO
             List<GroupDTO.GroupItem> groupList = groups.stream().map(group -> {
                 GroupDTO.GroupItem item = new GroupDTO.GroupItem();
-                item.setId(group.getId());
+                item.setId(String.valueOf(group.getId()));
                 item.setName(group.getName());
-                // 解析tags
+
+                // 解析标签
                 if (group.getTags() != null) {
-                    try {
-                        item.setTags(Arrays.asList(objectMapper.readValue(group.getTags(), String[].class)));
-                    } catch (JsonProcessingException e) {
-                        item.setTags(Arrays.asList(group.getTags().split(",")));
-                    }
+                    // 如果是List<String>类型，直接赋值
+                    item.setTags(group.getTags());
                 }
+
                 item.setMemberCount(group.getMemberCount());
                 item.setActivityType(group.getActivityType());
                 item.setIntro(group.getIntro());
                 item.setAvatar(group.getAvatar());
-                item.setJoined(false); // 需要根据当前用户查询是否已加入
+
+                // 使用从SQL查询中获取的 isJoined 字段
+                item.setJoined(group.getIsJoined() != null ? group.getIsJoined() : false);
+
                 return item;
             }).collect(Collectors.toList());
 
+            GroupDTO result = new GroupDTO();
+            result.setPageNum(pageNum);
+            result.setPageSize(pageSize);
+            result.setTotal(total);
             result.setList(groupList);
+
             return result;
         } catch (Exception e) {
             log.error("获取小组列表失败: {}", e.getMessage(), e);
@@ -73,50 +86,54 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
-    @Override
     @Transactional
-    public GroupCreateResultDTO createGroup(GroupCreateDTO request, String userId) {
+    @Override
+    public GroupCreateResultDTO createGroup(GroupCreateDTO request, Long userId) {
         log.info("用户 {} 创建小组: name={}", userId, request.getName());
 
         try {
+            // 创建小组记录
             Group group = new Group();
-            group.setId(IDGenerator.generateCircleId());
             group.setName(request.getName());
             group.setIntro(request.getIntro());
             group.setAvatar(request.getAvatar());
             group.setActivityType(request.getActivityDesc());
-            group.setCreator(userId);
-            group.setCreateTime(LocalDateTime.now());
-            group.setMemberCount(1); // 创建者自动成为成员
+            group.setCreatorId(userId);
             group.setStatus("pending"); // 待审核
+            group.setCreatedAt(LocalDateTime.now());
 
-            // 处理tags
-            if (request.getTags() != null && !request.getTags().isEmpty()) {
-                group.setTags(objectMapper.writeValueAsString(request.getTags()));
-            }
+//            // 将标签列表转换为JSON字符串
+//            if (request.getTags() != null) {
+//                group.setTags(Collections.singletonList(objectMapper.writeValueAsString(request.getTags())));
+//            }
 
             int result = groupMapper.insert(group);
+
             if (result > 0) {
                 // 创建者自动加入小组
-                GroupMember creatorMember = new GroupMember();
-                creatorMember.setId(IDGenerator.generateId());
-                creatorMember.setGroupId(group.getId());
-                creatorMember.setUserId(userId);
-                creatorMember.setRole("creator");
-                creatorMember.setJoinTime(LocalDateTime.now());
-                groupMemberMapper.insert(creatorMember);
+                // 使用user_groups表，不是group_members表
+                UserGroup userGroup = new UserGroup();
+                userGroup.setUserId(userId);
+                userGroup.setGroupId(group.getId());
+                userGroup.setRoleInGroup("creator");
+                userGroup.setJoinedAt(LocalDateTime.now());
+                userGroupMapper.insert(userGroup);
+
+                // 添加标签到group_tags表
+                if (request.getTags() != null) {
+                    for (String tag : request.getTags()) {
+                        groupTagMapper.insertTag(group.getId(), tag);
+                    }
+                }
 
                 GroupCreateResultDTO response = new GroupCreateResultDTO();
-                response.setGroupId(group.getId());
+                response.setGroupId(String.valueOf(group.getId()));
                 response.setStatus("pending");
                 response.setSubmitTime(LocalDateTime.now());
                 return response;
             } else {
                 throw new RuntimeException("小组创建失败");
             }
-        } catch (JsonProcessingException e) {
-            log.error("JSON序列化失败: {}", e.getMessage(), e);
-            throw new RuntimeException("小组创建失败");
         } catch (Exception e) {
             log.error("创建小组失败: {}", e.getMessage(), e);
             throw new RuntimeException("创建小组失败");
@@ -128,7 +145,7 @@ public class GroupServiceImpl implements GroupService {
         log.info("获取小组详情: groupId={}, userId={}", groupId, userId);
 
         try {
-            Group group = groupMapper.findById(groupId);
+            Group group = groupMapper.findById(Long.valueOf(groupId));
             if (group == null) {
                 throw new RuntimeException("小组不存在");
             }
@@ -137,27 +154,23 @@ public class GroupServiceImpl implements GroupService {
 
             // 小组基本信息
             GroupDetailDTO.GroupInfo groupInfo = new GroupDetailDTO.GroupInfo();
-            groupInfo.setId(group.getId());
+            groupInfo.setId(String.valueOf(group.getId()));
             groupInfo.setName(group.getName());
-            // 解析tags
+
+            // 解析tags - 修复这里
             if (group.getTags() != null) {
-                try {
-                    groupInfo.setTags(Arrays.asList(objectMapper.readValue(group.getTags(), String[].class)));
-                } catch (JsonProcessingException e) {
-                    groupInfo.setTags(Arrays.asList(group.getTags().split(",")));
-                }
+                groupInfo.setTags(group.getTags()); // 直接赋值，因为Group中的tags已经是List<String>
             }
+
             groupInfo.setMemberCount(group.getMemberCount());
             groupInfo.setActivityType(group.getActivityType());
             groupInfo.setIntro(group.getIntro());
             groupInfo.setAvatar(group.getAvatar());
-            groupInfo.setCreator(group.getCreator());
-            groupInfo.setCreateTime(group.getCreateTime());
 
             // 检查用户是否已加入
             GroupMember member = groupMemberMapper.findByGroupAndUser(groupId, userId);
-            groupInfo.setJoined(member != null);
-            groupInfo.setManager(member != null && ("manager".equals(member.getRole()) || "creator".equals(member.getRole())));
+            groupInfo.setIsJoined(member != null);
+            groupInfo.setIsManager(member != null && ("manager".equals(member.getRole()) || "creator".equals(member.getRole())));
 
             result.setGroupInfo(groupInfo);
 
@@ -170,13 +183,13 @@ public class GroupServiceImpl implements GroupService {
 
             List<GroupDetailDTO.DynamicItem> dynamicList = dynamics.stream().map(dynamic -> {
                 GroupDetailDTO.DynamicItem item = new GroupDetailDTO.DynamicItem();
-                item.setId(dynamic.getId());
-                item.setUserId(dynamic.getUserId());
+                item.setId(String.valueOf(dynamic.getId()));
+                item.setUserId(String.valueOf(dynamic.getUserId()));
                 item.setNickname(dynamic.getNickname());
                 item.setAvatar(dynamic.getAvatar());
                 item.setTitle(dynamic.getTitle());
                 item.setContent(dynamic.getContent());
-                item.setPublishTime(dynamic.getPublishTime());
+                item.setPublishTime(dynamic.getCreatedAt());
                 item.setLikeCount(dynamic.getLikeCount());
                 item.setCommentCount(dynamic.getCommentCount());
                 // 解析图片URL
@@ -184,7 +197,9 @@ public class GroupServiceImpl implements GroupService {
                     try {
                         item.setImageUrls(Arrays.asList(objectMapper.readValue(dynamic.getImageUrls(), String[].class)));
                     } catch (JsonProcessingException e) {
-                        // 处理异常
+                        // 处理异常 - 如果是逗号分隔的字符串
+                        String[] urls = dynamic.getImageUrls().split(",");
+                        item.setImageUrls(Arrays.asList(urls));
                     }
                 }
                 return item;
@@ -201,14 +216,14 @@ public class GroupServiceImpl implements GroupService {
 
             List<GroupDetailDTO.ResourceItem> resourceList = resources.stream().map(resource -> {
                 GroupDetailDTO.ResourceItem item = new GroupDetailDTO.ResourceItem();
-                item.setId(resource.getId());
+                item.setId(String.valueOf(resource.getId()));
                 item.setTitle(resource.getTitle());
-                item.setType(getFileType(resource.getFileName()));
+                item.setType(resource.getType()); // 添加类型
                 item.setUploader(resource.getUploader());
-                item.setUploadTime(resource.getUploadTime());
+                item.setUploadTime(resource.getCreatedAt()); // 修复字段名
                 item.setDownloadCount(resource.getDownloadCount());
-                item.setSize(resource.getFileSize());
-                item.setLink("/api/v1/resource/" + resource.getId() + "/download");
+                item.setSize(resource.getSize()); // 添加文件大小
+                item.setLink(resource.getLink()); // 使用资源本身的link字段
                 return item;
             }).collect(Collectors.toList());
             groupResource.setList(resourceList);
@@ -224,7 +239,7 @@ public class GroupServiceImpl implements GroupService {
                 item.setId(notice.getId());
                 item.setTitle(notice.getTitle());
                 item.setContent(notice.getContent());
-                item.setPublishTime(notice.getPublishTime());
+                item.setPublishTime(notice.getCreatedAt());
                 return item;
             }).collect(Collectors.toList());
             groupNotice.setList(noticeList);
@@ -243,7 +258,7 @@ public class GroupServiceImpl implements GroupService {
         log.info("用户 {} {}小组 {}", userId, "join".equals(action) ? "加入" : "退出", groupId);
 
         try {
-            Group group = groupMapper.findById(groupId);
+            Group group = groupMapper.findById(Long.valueOf(groupId));
             if (group == null) {
                 throw new RuntimeException("小组不存在");
             }
@@ -260,7 +275,7 @@ public class GroupServiceImpl implements GroupService {
 
                 // 加入小组
                 GroupMember member = new GroupMember();
-                member.setId(IDGenerator.generateId());
+                member.setId(IDGenerator.generateId().toString()); // 转换为String
                 member.setGroupId(groupId);
                 member.setUserId(userId);
                 member.setRole("member");
@@ -307,13 +322,13 @@ public class GroupServiceImpl implements GroupService {
 
             GroupDynamic dynamic = new GroupDynamic();
             dynamic.setId(IDGenerator.generateId());
-            dynamic.setGroupId(groupId);
-            dynamic.setUserId(userId);
-            dynamic.setNickname("用户" + userId.substring(0, 6)); // 简化处理
+            dynamic.setGroupId(Long.valueOf(groupId));
+            dynamic.setUserId(Long.valueOf(userId));
+            dynamic.setNickname("用户" + userId.substring(0, Math.min(userId.length(), 6))); // 防止索引越界
             dynamic.setAvatar("https://jobhub.com/avatar/default.png");
             dynamic.setTitle(request.getTitle());
             dynamic.setContent(request.getContent());
-            dynamic.setPublishTime(LocalDateTime.now());
+            dynamic.setCreatedAt(LocalDateTime.now());
             dynamic.setLikeCount(0);
             dynamic.setCommentCount(0);
             dynamic.setStatus("pending"); // 待审核
@@ -323,15 +338,15 @@ public class GroupServiceImpl implements GroupService {
                 dynamic.setImageUrls(objectMapper.writeValueAsString(request.getImageUrls()));
             }
 
-            // 处理标签
+            // 处理标签 - 修复这里
             if (request.getTags() != null && !request.getTags().isEmpty()) {
-                dynamic.setTags(objectMapper.writeValueAsString(request.getTags()));
+                dynamic.setTags(request.getTags()); // 直接赋值List<String>
             }
 
             int result = groupDynamicMapper.insert(dynamic);
             if (result > 0) {
                 GroupDynamicResultDTO response = new GroupDynamicResultDTO();
-                response.setDynamicId(dynamic.getId());
+                response.setDynamicId(String.valueOf(dynamic.getId()));
                 response.setStatus("pending");
                 response.setSubmitTime(LocalDateTime.now());
                 return response;
@@ -361,22 +376,19 @@ public class GroupServiceImpl implements GroupService {
 
             GroupResource resource = new GroupResource();
             resource.setId(IDGenerator.generateId());
-            resource.setGroupId(groupId);
+            resource.setGroupId(Long.valueOf(groupId)); // 转换为Long
             resource.setTitle(request.getTitle());
             resource.setDescription(request.getDescription());
-            resource.setFileUrl(request.getFile());
-            resource.setFileName(extractFileName(request.getFile()));
-            resource.setFileSize(calculateFileSize(request.getFile())); // 简化处理
             resource.setTag(request.getTag());
-            resource.setUploader("用户" + userId.substring(0, 6)); // 简化处理
-            resource.setUploadTime(LocalDateTime.now());
+            resource.setUploader("用户" + userId.substring(0, Math.min(userId.length(), 6))); // 防止索引越界
+            resource.setCreatedAt(LocalDateTime.now());
             resource.setDownloadCount(0);
             resource.setStatus("pending"); // 待审核
 
             int result = groupResourceMapper.insert(resource);
             if (result > 0) {
                 GroupResourceResultDTO response = new GroupResourceResultDTO();
-                response.setResourceId(resource.getId());
+                response.setResourceId(String.valueOf(resource.getId()));
                 response.setStatus("pending");
                 response.setSubmitTime(LocalDateTime.now());
                 return response;

@@ -1,4 +1,4 @@
-package com.cyd.xs.entity.User.Group;
+package com.cyd.xs.entity.Group;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -17,8 +17,7 @@ public class GroupNotice {
     private String groupId;
     private String title;
     private String content;
-    private String publisher;
-    private LocalDateTime publishTime;
+    private LocalDateTime createdAt;
 
     public String getId() {
         return id;
@@ -52,19 +51,4 @@ public class GroupNotice {
         this.content = content;
     }
 
-    public String getPublisher() {
-        return publisher;
-    }
-
-    public void setPublisher(String publisher) {
-        this.publisher = publisher;
-    }
-
-    public LocalDateTime getPublishTime() {
-        return publishTime;
-    }
-
-    public void setPublishTime(LocalDateTime publishTime) {
-        this.publishTime = publishTime;
-    }
 }

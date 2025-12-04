@@ -7,7 +7,8 @@ import java.time.LocalDateTime;
 @Data
 public class GroupCreateResultDTO {
     private String groupId;
-
+    private String status;
+    private LocalDateTime submitTime;
     public String getGroupId() {
         return groupId;
     }
@@ -32,6 +33,5 @@ public class GroupCreateResultDTO {
         this.submitTime = submitTime;
     }
 
-    private String status;
-    private LocalDateTime submitTime;
+
 }

@@ -1,12 +1,15 @@
 package com.cyd.xs.service;
 
 import com.cyd.xs.dto.Group.*;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface GroupService {
 
-    GroupDTO getGroupList(String keyword, String tag, String sort, Integer pageNum, Integer pageSize);
 
-    GroupCreateResultDTO createGroup(GroupCreateDTO request, String userId);
+    GroupDTO getGroupList(String keyword, String tag, String sort, Integer pageNum, Integer pageSize, Long userId);
+
+    @Transactional
+    GroupCreateResultDTO createGroup(GroupCreateDTO request, Long userId);
 
     GroupDetailDTO getGroupDetail(String groupId, String userId);
 

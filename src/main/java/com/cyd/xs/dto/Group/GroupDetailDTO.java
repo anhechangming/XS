@@ -30,90 +30,6 @@ public class GroupDetailDTO {
         private Boolean isJoined;
         private Boolean isManager;
 
-        public void setJoined(boolean b) {
-            isJoined = b;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public List<String> getTags() {
-            return tags;
-        }
-
-        public void setTags(List<String> tags) {
-            this.tags = tags;
-        }
-
-        public Integer getMemberCount() {
-            return memberCount;
-        }
-
-        public void setMemberCount(Integer memberCount) {
-            this.memberCount = memberCount;
-        }
-
-        public String getActivityType() {
-            return activityType;
-        }
-
-        public void setActivityType(String activityType) {
-            this.activityType = activityType;
-        }
-
-        public String getIntro() {
-            return intro;
-        }
-
-        public void setIntro(String intro) {
-            this.intro = intro;
-        }
-
-        public String getAvatar() {
-            return avatar;
-        }
-
-        public void setAvatar(String avatar) {
-            this.avatar = avatar;
-        }
-
-        public String getCreator() {
-            return creator;
-        }
-
-        public void setCreator(String creator) {
-            this.creator = creator;
-        }
-
-        public LocalDateTime getCreateTime() {
-            return createTime;
-        }
-
-        public void setCreateTime(LocalDateTime createTime) {
-            this.createTime = createTime;
-        }
-
-        public Boolean getJoined() {
-            return isJoined;
-        }
-
-        public void setJoined(Boolean joined) {
-            isJoined = joined;
-        }
-
         public Boolean getManager() {
             return isManager;
         }
@@ -122,8 +38,12 @@ public class GroupDetailDTO {
             isManager = manager;
         }
 
-        public void setManager(boolean b) {
-            isManager = b;
+        public Boolean getJoined() {
+            return isJoined;
+        }
+
+        public void setJoined(Boolean joined) {
+            isJoined = joined;
         }
     }
 

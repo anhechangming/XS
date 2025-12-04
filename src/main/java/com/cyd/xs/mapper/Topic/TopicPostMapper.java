@@ -1,7 +1,7 @@
 package com.cyd.xs.mapper.Topic;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.cyd.xs.entity.User.Topic.TopicPost;
+import com.cyd.xs.entity.Topic.TopicPost;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 

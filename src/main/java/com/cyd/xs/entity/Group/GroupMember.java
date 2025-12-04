@@ -1,4 +1,4 @@
-package com.cyd.xs.entity.User.Group;
+package com.cyd.xs.entity.Group;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

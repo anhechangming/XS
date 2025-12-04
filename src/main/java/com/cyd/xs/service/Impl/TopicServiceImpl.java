@@ -4,8 +4,12 @@ import com.cyd.xs.dto.ChatRoom.ChatRoomDTO;
 import com.cyd.xs.dto.ChatRoom.ChatRoomDetailDTO;
 import com.cyd.xs.dto.ChatRoom.ChatRoomMessageDTO;
 import com.cyd.xs.dto.Topic.*;
-import com.cyd.xs.entity.User.Topic.Topic;
-import com.cyd.xs.entity.User.Topic.TopicPost;
+import com.cyd.xs.entity.Topic.ChatRoom.ChatRoomMessage;
+import com.cyd.xs.entity.Topic.Topic;
+import com.cyd.xs.entity.Topic.TopicPost;
+import com.cyd.xs.entity.User.User;
+import com.cyd.xs.mapper.ChatRoom.ChatRoomMapper;
+import com.cyd.xs.mapper.ChatRoom.ChatRoomMessageMapper;
 import com.cyd.xs.mapper.Topic.TopicMapper;
 import com.cyd.xs.mapper.Topic.TopicPostMapper;
 import com.cyd.xs.service.TopicService;
@@ -27,6 +31,8 @@ public class TopicServiceImpl implements TopicService {
 
     private final TopicMapper topicMapper;
     private final TopicPostMapper topicPostMapper;
+    private final ChatRoomMapper chatRoomMapper;
+    private final ChatRoomMessageMapper chatRoomMessageMapper;
 
     @Override
     public TopicDTO getTopicList(String tag, String level, String sort, Integer pageNum, Integer pageSize) {
@@ -35,7 +41,7 @@ public class TopicServiceImpl implements TopicService {
 
         try {
             int offset = (pageNum - 1) * pageSize;
-            List<Topic> topics = topicMapper.findTopicsByCondition(tag, sort, offset, pageSize);
+            List<Topic> topics = topicMapper.findTopicsByCondition(tag, level, sort, offset, pageSize);
 
             TopicDTO result = new TopicDTO();
             result.setTotal(topicMapper.countByTag(tag));
@@ -265,21 +271,29 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    @Transactional
     public ChatRoomMessageDTO sendChatRoomMessage(String chatRoomId, String userId, String content) {
-        log.info("用户 {} 在聊天室 {} 发送消息: {}", userId, chatRoomId, content);
+        // 1. 验证用户权限
+        // 2. 创建消息实体
+        ChatRoomMessage message = new ChatRoomMessage();
+        message.setId(IDGenerator.generateId());
+        message.setChatRoomId(chatRoomId);
+        message.setUserId(userId);
+        message.setContent(content);
+        message.setSendTime(LocalDateTime.now());
 
-        try {
-            // 这里应该保存消息到数据库
-            ChatRoomMessageDTO result = new ChatRoomMessageDTO();
-            result.setMessageId(IDGenerator.generateId());
-            result.setSendTime(LocalDateTime.now());
+        // 3. 从用户表获取用户信息
+         //User user = userService.getUserById(userId);
+         //message.setNickname(user.getNickname());
+         //message.setAvatar(user.getAvatarUrl());
 
-            return result;
-        } catch (Exception e) {
-            log.error("发送聊天室消息失败: {}", e.getMessage(), e);
-            throw new RuntimeException("发送聊天室消息失败");
-        }
+        // 4. 保存消息
+        chatRoomMessageMapper.insert(message);
+
+        // 5. 返回DTO
+        ChatRoomMessageDTO dto = new ChatRoomMessageDTO();
+        dto.setMessageId(message.getId());
+        dto.setSendTime(message.getSendTime());
+        return dto;
     }
 
     @Override

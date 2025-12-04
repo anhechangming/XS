@@ -1,7 +1,7 @@
 package com.cyd.xs.mapper.ChatRoom;
 
 
-import com.cyd.xs.entity.User.Topic.ChatRoom.ChatRoom;
+import com.cyd.xs.entity.Topic.ChatRoom.ChatRoom;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
