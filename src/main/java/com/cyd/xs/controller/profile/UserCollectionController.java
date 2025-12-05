@@ -1,7 +1,7 @@
 package com.cyd.xs.controller.profile;
 
 import com.cyd.xs.Response.Result;
-import com.cyd.xs.entity.User.Collection;
+import com.cyd.xs.entity.User.Collections;
 import com.cyd.xs.entity.User.CollectionFolder;
 import com.cyd.xs.service.CollectionFolderService;
 import com.cyd.xs.service.CollectionService;
@@ -46,8 +46,8 @@ public class UserCollectionController {
      * 请求示例：GET /api/user/collection/list?folderId=1
      */
     @GetMapping("/list")
-    public Result<List<Collection>> listCollectionByFolder(@RequestParam Long folderId) {
-        List<Collection> collections = collectionService.listByFolderId(folderId);
+    public Result<List<Collections>> listCollectionByFolder(@RequestParam Long folderId) {
+        List<Collections> collections = collectionService.listByFolderId(folderId);
         return Result.success("获取收藏内容成功", collections);
     }
 

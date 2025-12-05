@@ -12,8 +12,8 @@ import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
+
 
 @Data
 @Entity
@@ -49,6 +49,6 @@ public class GroupDynamic {
     private String avatar;      // 需要通过users表查询
 
     @TableField(value = "tags", typeHandler = JsonListTypeHandler.class)
-    private List<String> tags;  // 需要通过其他表查询
+    private List<String> tags;  // 对应tags字段 需要通过其他表查询
 
 }

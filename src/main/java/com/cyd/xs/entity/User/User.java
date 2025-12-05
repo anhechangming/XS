@@ -35,149 +35,22 @@ public class User {
     public User() {
     }
 
-    public User(Long id, String username, String displayName, String avatarUrl, String profileJson, String privacyJson, String publicStatsJson, String sensitiveJson, String role, String status, Integer creditScore, String tier, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
-        this.id = id;
+    public User(String username, String password, String displayName, String avatarUrl, String profileJson, String privacyJson, String publicStats, String sensitiveJson, String role, String status, Integer creditScore, String tier, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
         this.username = username;
-        this.displayName = displayName;
-        this.avatarUrl = avatarUrl;
-        this.profileJson = profileJson;
-        this.privacyJson = privacyJson;
-        this.publicStats = publicStatsJson;
-        this.sensitiveJson = sensitiveJson;
-        this.role = role;
-        this.status = status;
-        this.creditScore = creditScore;
-        this.tier = tier;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.deletedAt = deletedAt;
-    }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
         this.password = password;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
         this.displayName = displayName;
-    }
-
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
-    }
-
-    public String getProfileJson() {
-        return profileJson;
-    }
-
-    public void setProfileJson(String profileJson) {
         this.profileJson = profileJson;
-    }
-
-    public String getPrivacyJson() {
-        return privacyJson;
-    }
-
-    public void setPrivacyJson(String privacyJson) {
         this.privacyJson = privacyJson;
-    }
-
-    public String getPublicStats() {
-        return publicStats;
-    }
-
-    public void setPublicStats(String publicStats) {
         this.publicStats = publicStats;
-    }
-
-    public String getSensitiveJson() {
-        return sensitiveJson;
-    }
-
-    public void setSensitiveJson(String sensitiveJson) {
         this.sensitiveJson = sensitiveJson;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
         this.role = role;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
         this.status = status;
-    }
-
-    public Integer getCreditScore() {
-        return creditScore;
-    }
-
-    public void setCreditScore(Integer creditScore) {
         this.creditScore = creditScore;
-    }
-
-    public String getTier() {
-        return tier;
-    }
-
-    public void setTier(String tier) {
         this.tier = tier;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public LocalDateTime getDeletedAt() {
-        return deletedAt;
-    }
-
-    public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
 }

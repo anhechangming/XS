@@ -45,20 +45,15 @@ mybatis-plus:
   mapper-locations: classpath*:mapper/*.xml
   type-aliases-package: com.cyd.xs.entity
   # 指定类型处理器所在的包
-  type-handlers-package: com.cyd.xs.handler
+  type-handlers-package: com.cyd.xs.config
   configuration:
+    map-underscore-to-camel-case: true
     # 开启自动映射结果集
     auto-mapping-behavior: full
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
-mybatis:
-  # XML 文件所在目录（根据实际项目结构调整）
-  mapper-locations: classpath:mybatis/*.xml
-  # 实体类别名包（避免 XML 中写全类名）
-  type-aliases-package: com.cyd.xs.entity
-  configuration:
-    # 开启驼峰命名自动转换（如数据库 is_read → 实体类 isRead）
-    map-underscore-to-camel-case: true
+
+
 
 logging:
   level:

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Data
 @TableName("collections") // 与数据库表名一致
-public class Collection {
+public class Collections {
 
     @TableId(type = IdType.AUTO)
     private Long id; // 收藏记录ID（自增）
