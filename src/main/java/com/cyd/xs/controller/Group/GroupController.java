@@ -22,17 +22,23 @@ public class GroupController {
     public ResponseEntity<Result<?>> getGroupList(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String tag,
-            @RequestParam(defaultValue = "member") String sort,
+            @RequestParam(required = false, defaultValue = "member") String sort,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
             Authentication authentication) {
         try {
-            String userId = getUserIdFromAuthentication(authentication);
+            // 修改：允许未认证用户访问，默认userId为null或0
+            String userId = "0"; // 默认值
+            if (authentication != null && authentication.isAuthenticated()) {
+                userId = authentication.getName();
+            }
+
             // 修改调用，添加 userId 参数
             GroupDTO result = groupService.getGroupList(keyword, tag, sort, pageNum, pageSize, Long.valueOf(userId));
             return ResponseEntity.ok(Result.success("获取成功", result));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Result.error("获取失败"));
+            e.printStackTrace(); // 添加异常堆栈打印
+            return ResponseEntity.badRequest().body(Result.error("获取失败: " + e.getMessage()));
         }
     }
 
@@ -133,4 +139,6 @@ public class GroupController {
         }
         throw new RuntimeException("用户未认证");
     }
+
+
 }

@@ -194,7 +194,7 @@ public class HomeServiceImpl implements HomeService {
             List<Activity> activities = carouselMapper.findActiveCarousels(5);
             return activities.stream().map(activity -> {
                 HomeDTO.Carousel carousel = new HomeDTO.Carousel();
-                carousel.setId(activity.getId().toString());
+                carousel.setId(Long.valueOf(activity.getId().toString()));
                 carousel.setTitle(activity.getTitle());
                 carousel.setImageUrl(activity.getImageUrl());
                 carousel.setDesc(activity.getDescription());

@@ -10,6 +10,7 @@ import jakarta.persistence.Transient;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class Group {
     private String status;          // 状态（'normal'=正常，'pending'=待审核等）
     private LocalDateTime createdAt; // 创建时间
 
+
     private Integer memberCount;  // 通过user_groups表统计
 
     @Transient
@@ -40,8 +42,13 @@ public class Group {
     // 添加 getter/setter 用于 tagsStr 的解析
     public List<String> getTags() {
         if (tags == null && tagsStr != null) {
-            // 如果是逗号分隔的字符串
-            tags = Arrays.asList(tagsStr.split(","));
+            // 处理空字符串或null
+            if (tagsStr.trim().isEmpty()) {
+                tags = new ArrayList<>();
+            } else {
+                // 如果是逗号分隔的字符串
+                tags = Arrays.asList(tagsStr.split(","));
+            }
         }
         return tags;
     }

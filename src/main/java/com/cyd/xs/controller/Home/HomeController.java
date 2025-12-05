@@ -28,9 +28,12 @@ public class HomeController {
     public ResponseEntity<Result<?>> getHomeData(Authentication authentication) {
         try {
             System.out.println("开始获取首页数据...");
-            String userId = getUserIdFromAuthentication(authentication);
+            Long userId = null;
+            if (authentication != null && authentication.isAuthenticated()) {
+                userId = Long.parseLong(authentication.getName());
+            }
             System.out.println("用户ID: " + userId);
-            HomeDTO homeDTO = homeService.getHomeData(userId);
+            HomeDTO homeDTO = homeService.getHomeData(String.valueOf(userId));
             return ResponseEntity.ok(Result.success("获取成功", homeDTO));
         } catch (Exception e) {
             System.err.println("获取首页数据失败: " + e.getMessage());

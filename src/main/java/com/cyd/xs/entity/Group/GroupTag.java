@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "group_tag")
+@Table(name = "group_tags")
 public class GroupTag {
     @TableId(type = IdType.AUTO)
     @Id

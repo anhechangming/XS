@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "topic_posts")
 public class TopicPost {
     @Id
-    private String id;
+    private Long id;
 
     @Column(nullable = false)
     private String topicId;
@@ -40,7 +40,7 @@ public class TopicPost {
     public TopicPost() {
     }
 
-    public TopicPost(String id, String topicId, String userId, String userName, String content, String images, String tags, Integer likeCount, Integer commentCount, Integer collectCount, LocalDateTime createdAt) {
+    public TopicPost(Long id, String topicId, String userId, String userName, String content, String images, String tags, Integer likeCount, Integer commentCount, Integer collectCount, LocalDateTime createdAt) {
         this.id = id;
         this.topicId = topicId;
         this.userId = userId;
@@ -54,91 +54,5 @@ public class TopicPost {
         this.createdAt = createdAt;
     }
 
-    public String getId() {
-        return id;
-    }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getTopicId() {
-        return topicId;
-    }
-
-    public void setTopicId(String topicId) {
-        this.topicId = topicId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getImages() {
-        return images;
-    }
-
-    public void setImages(String images) {
-        this.images = images;
-    }
-
-    public String getTags() {
-        return tags;
-    }
-
-    public void setTags(String tags) {
-        this.tags = tags;
-    }
-
-    public Integer getLikeCount() {
-        return likeCount;
-    }
-
-    public void setLikeCount(Integer likeCount) {
-        this.likeCount = likeCount;
-    }
-
-    public Integer getCommentCount() {
-        return commentCount;
-    }
-
-    public void setCommentCount(Integer commentCount) {
-        this.commentCount = commentCount;
-    }
-
-    public Integer getCollectCount() {
-        return collectCount;
-    }
-
-    public void setCollectCount(Integer collectCount) {
-        this.collectCount = collectCount;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 }

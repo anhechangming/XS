@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "topics")
 public class Topic {
     @Id
-    private String id;
+    private Long id;
 
     @Column(nullable = false)
     private String title;

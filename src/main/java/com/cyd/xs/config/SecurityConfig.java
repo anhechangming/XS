@@ -48,7 +48,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 无状态会话（依赖JWT）
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/**").permitAll()  // 开发阶段放行所有 API，接口测试完成后删除，后续根据权限控制
+                        //.requestMatchers("/api/**").permitAll()  // 开发阶段放行所有 API，接口测试完成后删除，后续根据权限控制
                         // 放行首页接口
                         .requestMatchers("/api/v1/home/**").permitAll()
                         // 放行一些不需要认证的接口（如公开内容）

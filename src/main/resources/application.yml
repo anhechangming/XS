@@ -1,4 +1,9 @@
 spring:
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   # 数据库配置
   datasource:
     url: jdbc:mysql://localhost:3306/xs_db?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
@@ -8,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate  # 若使用update 模式，自动创建或更新表结构
+      ddl-auto: update  # 若使用update 模式，自动创建或更新表结构
     properties:
       hibernate:
         format_sql: true

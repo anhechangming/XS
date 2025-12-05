@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +37,7 @@ public class GroupServiceImpl implements GroupService {
     private final UserGroupMapper userGroupMapper;
     private final GroupTagMapper groupTagMapper;
 
+
     @Override
     public GroupDTO getGroupList(String keyword, String tag, String sort, Integer pageNum, Integer pageSize, Long userId) {
         log.info("获取小组列表: keyword={}, tag={}, sort={}, pageNum={}, pageSize={}, userId={}",
@@ -44,11 +46,18 @@ public class GroupServiceImpl implements GroupService {
         try {
             int offset = (pageNum - 1) * pageSize;
 
+            // 如果 userId 为 null 或 0，传入字符串 "0"
+            String userIdStr = (userId != null && userId != 0L) ? String.valueOf(userId) : "0";
+
+            // 处理空字符串参数
+            String keywordParam = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
+            String tagParam = (tag != null && !tag.trim().isEmpty()) ? tag.trim() : null;
+
             // 查询小组基本信息，传入 userId
-            List<Group> groups = groupMapper.findGroups(keyword, tag, sort, offset, pageSize, String.valueOf(userId));
+            List<Group> groups = groupMapper.findGroups(keywordParam, tagParam, sort, offset, pageSize, userIdStr);
 
             // 查询总数，传入过滤参数
-            Long total = groupMapper.countGroups(keyword, tag);
+            Long total = groupMapper.countGroups(keywordParam, tagParam);
 
             // 转换DTO
             List<GroupDTO.GroupItem> groupList = groups.stream().map(group -> {
@@ -57,12 +66,13 @@ public class GroupServiceImpl implements GroupService {
                 item.setName(group.getName());
 
                 // 解析标签
-                if (group.getTags() != null) {
-                    // 如果是List<String>类型，直接赋值
+                if (group.getTags() != null && !group.getTags().isEmpty()) {
                     item.setTags(group.getTags());
+                } else {
+                    item.setTags(new ArrayList<>());
                 }
 
-                item.setMemberCount(group.getMemberCount());
+                item.setMemberCount(group.getMemberCount() != null ? group.getMemberCount() : 0);
                 item.setActivityType(group.getActivityType());
                 item.setIntro(group.getIntro());
                 item.setAvatar(group.getAvatar());
@@ -82,10 +92,9 @@ public class GroupServiceImpl implements GroupService {
             return result;
         } catch (Exception e) {
             log.error("获取小组列表失败: {}", e.getMessage(), e);
-            throw new RuntimeException("获取小组列表失败");
+            throw new RuntimeException("获取小组列表失败: " + e.getMessage());
         }
     }
-
     @Transactional
     @Override
     public GroupCreateResultDTO createGroup(GroupCreateDTO request, Long userId) {
@@ -236,7 +245,7 @@ public class GroupServiceImpl implements GroupService {
 
             List<GroupDetailDTO.NoticeItem> noticeList = notices.stream().map(notice -> {
                 GroupDetailDTO.NoticeItem item = new GroupDetailDTO.NoticeItem();
-                item.setId(notice.getId());
+                item.setId(String.valueOf(notice.getId()));
                 item.setTitle(notice.getTitle());
                 item.setContent(notice.getContent());
                 item.setPublishTime(notice.getCreatedAt());
@@ -275,7 +284,7 @@ public class GroupServiceImpl implements GroupService {
 
                 // 加入小组
                 GroupMember member = new GroupMember();
-                member.setId(IDGenerator.generateId().toString()); // 转换为String
+                member.setId(IDGenerator.generateId());
                 member.setGroupId(groupId);
                 member.setUserId(userId);
                 member.setRole("member");

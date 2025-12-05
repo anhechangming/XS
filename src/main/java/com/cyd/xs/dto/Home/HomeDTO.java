@@ -20,7 +20,7 @@ public class HomeDTO {
     // 首页数据结构
     @Data
     public static class Carousel {
-        private String id;
+        private Long id;
         private String title;
         private String imageUrl;
         private String desc;

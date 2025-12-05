@@ -9,28 +9,35 @@ import java.util.List;
 @Mapper
 public interface GroupMapper extends BaseMapper<Group> {
 
-    @Insert("INSERT INTO groups (name, intro, avatar, activity_type, creator_id, status, created_at) " +
+    @Insert("INSERT INTO `groups` (name, intro, avatar, activity_type, creator_id, status, created_at) " +
             "VALUES (#{name}, #{intro}, #{avatar}, #{activityType}, #{creatorId}, #{status}, #{createdAt})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Group group);
 
-    @Select("SELECT * FROM groups WHERE id = #{id}")
+    @Select("SELECT * FROM `groups` WHERE id = #{id}")
     Group findById(Long id);
 
-    // 获取小组列表，需要关联查询标签和成员数
-    // 修改 findGroups 方法，需要查询用户是否已加入
+    // 修改 findGroups 方法，使用反引号包裹 groups
     @Select("<script>" +
-            "SELECT g.*, " +
-            "  (SELECT COUNT(*) FROM user_groups WHERE group_id = g.id) as member_count, " +
-            "  (SELECT GROUP_CONCAT(tag) FROM group_tags WHERE group_id = g.id) as tags_str, " +
-            "  EXISTS(SELECT 1 FROM user_groups WHERE group_id = g.id AND user_id = #{userId}) as is_joined " +
-            "FROM groups g WHERE g.status = 'active' " +
-            "<if test='keyword != null'> AND (g.name LIKE CONCAT('%', #{keyword}, '%') OR g.intro LIKE CONCAT('%', #{keyword}, '%'))</if>" +
-            "<if test='tag != null'> AND g.id IN (SELECT group_id FROM group_tags WHERE tag = #{tag})</if>" +
+            "SELECT " +
+            "  g.id, " +
+            "  g.name, " +
+            "  g.intro, " +
+            "  g.avatar, " +
+            "  g.activity_type as activityType, " +
+            "  g.creator_id as creatorId, " +
+            "  g.status, " +
+            "  g.created_at as createdAt, " +
+            "  (SELECT COUNT(*) FROM user_groups WHERE group_id = g.id) as memberCount, " +
+            "  (SELECT GROUP_CONCAT(tag) FROM group_tags WHERE group_id = g.id) as tagsStr, " +
+            "  EXISTS(SELECT 1 FROM user_groups WHERE group_id = g.id AND user_id = #{userId}) as isJoined " +
+            "FROM `groups` g WHERE g.status = 'active' " +
+            "<if test='keyword != null and keyword != \"\"'> AND (g.name LIKE CONCAT('%', #{keyword}, '%') OR g.intro LIKE CONCAT('%', #{keyword}, '%'))</if>" +
+            "<if test='tag != null and tag != \"\"'> AND g.id IN (SELECT group_id FROM group_tags WHERE tag = #{tag})</if>" +
             " ORDER BY " +
             "<choose>" +
             "  <when test='sort == \"activity\"'> g.created_at DESC </when>" +
-            "  <otherwise> (SELECT COUNT(*) FROM user_groups WHERE group_id = g.id) DESC </otherwise>" +
+            "  <otherwise> memberCount DESC </otherwise>" +
             "</choose>" +
             " LIMIT #{offset}, #{pageSize}" +
             "</script>")
@@ -39,18 +46,19 @@ public interface GroupMapper extends BaseMapper<Group> {
                            @Param("pageSize") int pageSize, @Param("userId") String userId);
 
 
-    @Update("UPDATE groups SET status = #{status} WHERE id = #{groupId}")
+    @Update("UPDATE `groups` SET status = #{status} WHERE id = #{groupId}")
     int updateStatus(@Param("groupId") Long groupId, @Param("status") String status);
 
 
+    // 修改 countGroups 方法，同样使用反引号
     @Select("<script>" +
-            "SELECT COUNT(*) FROM groups g WHERE g.status = 'active' " +
-            "<if test='keyword != null'> AND (g.name LIKE CONCAT('%', #{keyword}, '%') OR g.intro LIKE CONCAT('%', #{keyword}, '%'))</if>" +
-            "<if test='tag != null'> AND g.id IN (SELECT group_id FROM group_tags WHERE tag = #{tag})</if>" +
+            "SELECT COUNT(*) FROM `groups` g WHERE g.status = 'active' " +
+            "<if test='keyword != null and keyword != \"\"'> AND (g.name LIKE CONCAT('%', #{keyword}, '%') OR g.intro LIKE CONCAT('%', #{keyword}, '%'))</if>" +
+            "<if test='tag != null and tag != \"\"'> AND g.id IN (SELECT group_id FROM group_tags WHERE tag = #{tag})</if>" +
             "</script>")
     Long countGroups(@Param("keyword") String keyword, @Param("tag") String tag);
 
-    @Update("UPDATE groups SET member_count = member_count + #{increment} WHERE id = #{groupId}")
+    @Update("UPDATE `groups` SET member_count = member_count + #{increment} WHERE id = #{groupId}")
     int updateMemberCount(@Param("groupId") String groupId, @Param("increment") int increment);
 
     @Select("SELECT * FROM `groups` WHERE id = #{groupId} AND status = 'normal'")

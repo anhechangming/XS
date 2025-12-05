@@ -51,7 +51,7 @@ public class TopicServiceImpl implements TopicService {
 
             List<TopicDTO.TopicItem> topicList = topics.stream().map(topic -> {
                 TopicDTO.TopicItem item = new TopicDTO.TopicItem();
-                item.setId(topic.getId());
+                item.setId(String.valueOf(topic.getId()));
                 item.setTitle(topic.getTitle());
                 item.setLevel("A"); // 默认等级，实际应从数据库获取
                 item.setTags(Arrays.asList(topic.getTag())); // 假设tag字段存储单个标签
@@ -85,7 +85,7 @@ public class TopicServiceImpl implements TopicService {
 
             // 设置话题信息
             TopicDetailDTO.TopicInfo topicInfo = new TopicDetailDTO.TopicInfo();
-            topicInfo.setId(topic.getId());
+            topicInfo.setId(String.valueOf(topic.getId()));
             topicInfo.setTitle(topic.getTitle());
             topicInfo.setLevel("A"); // 默认等级
             topicInfo.setTags(Arrays.asList(topic.getTag()));
@@ -108,7 +108,7 @@ public class TopicServiceImpl implements TopicService {
 
             List<TopicDetailDTO.CommentItem> commentItems = posts.stream().map(post -> {
                 TopicDetailDTO.CommentItem item = new TopicDetailDTO.CommentItem();
-                item.setId(post.getId());
+                item.setId(String.valueOf(post.getId()));
                 item.setUserId(post.getUserId());
                 item.setNickname(post.getUserName());
                 item.setAvatar("https://jobhub.com/avatar/default.png"); // 默认头像
@@ -137,7 +137,7 @@ public class TopicServiceImpl implements TopicService {
 
         try {
             TopicPost post = new TopicPost();
-            post.setId(String.valueOf(IDGenerator.generateId()));
+            post.setId(Long.valueOf(String.valueOf(IDGenerator.generateId())));
             post.setTopicId(topicId);
             post.setUserId(userId);
             post.setContent(request.getContent());
@@ -152,7 +152,7 @@ public class TopicServiceImpl implements TopicService {
             int result = topicPostMapper.insert(post);
             if (result > 0) {
                 TopicCommentDTO response = new TopicCommentDTO();
-                response.setCommentId(post.getId());
+                response.setCommentId(String.valueOf(post.getId()));
                 response.setStatus("pending"); // 默认待审核
                 response.setSubmitTime(LocalDateTime.now());
                 return response;
@@ -276,7 +276,7 @@ public class TopicServiceImpl implements TopicService {
         // 1. 验证用户权限
         // 2. 创建消息实体
         ChatRoomMessage message = new ChatRoomMessage();
-        message.setId(String.valueOf(IDGenerator.generateId()));
+        message.setId(Long.valueOf(String.valueOf(IDGenerator.generateId())));
         message.setChatRoomId(chatRoomId);
         message.setUserId(userId);
         message.setContent(content);
@@ -292,7 +292,7 @@ public class TopicServiceImpl implements TopicService {
 
         // 5. 返回DTO
         ChatRoomMessageDTO dto = new ChatRoomMessageDTO();
-        dto.setMessageId(message.getId());
+        dto.setMessageId(String.valueOf(message.getId()));
         dto.setSendTime(message.getSendTime());
         return dto;
     }

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "chatroom_roles")
 public class ChatRoomRoles {
     @Id
-    private String id;
+    private Long id;
     private String chatroomId;
     private String role;
     private Integer userId;
