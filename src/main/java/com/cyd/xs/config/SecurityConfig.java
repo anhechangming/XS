@@ -49,7 +49,13 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/**").permitAll()  // 开发阶段放行所有 API，接口测试完成后删除，后续根据权限控制
-                        .requestMatchers("api/vi/home/**").permitAll()  // 首页放行所有人，默认student角色
+                        // 放行首页接口
+                        .requestMatchers("/api/v1/home/**").permitAll()
+                        // 放行一些不需要认证的接口（如公开内容）
+                        .requestMatchers("/api/v1/topic/list").permitAll()
+                        .requestMatchers("/api/v1/group/list").permitAll()
+                        .requestMatchers("/api/v1/expert/resource/list").permitAll()
+                        .requestMatchers("/api/v1/expert/list").permitAll()
                         // 放行注册、登录接口
                         .requestMatchers("/api/user/register", "/api/user/login","/api/user/identity","/api/user/forgotpassword").permitAll()
                         // 其他接口需要认证
