@@ -17,6 +17,64 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
+
+-- ----------------------------
+-- Table structure for topics
+-- ----------------------------
+DROP TABLE IF EXISTS `topics`;
+CREATE TABLE `topics` (
+  `id` varchar(64) NOT NULL COMMENT '话题ID',
+  `title` varchar(255) NOT NULL COMMENT '话题标题',
+  `level` varchar(16) DEFAULT NULL COMMENT '等级（A/B/C）',
+  `tag` varchar(64) DEFAULT NULL COMMENT '标签类型',
+  `participant_count` int DEFAULT '0' COMMENT '参与人数',
+  `interactive_count` int DEFAULT '0' COMMENT '互动数',
+  `latest_reply_time` datetime DEFAULT NULL COMMENT '最新回复时间',
+  `guide_text` text COMMENT '引导文案',
+  `host` varchar(255) DEFAULT NULL COMMENT '主持人',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ----------------------------
+-- Table structure for topic_posts
+-- ----------------------------
+DROP TABLE IF EXISTS `topic_posts`;
+CREATE TABLE `topic_posts` (
+  `id` varchar(64) NOT NULL COMMENT '帖子ID',
+  `topic_id` varchar(64) NOT NULL COMMENT '话题ID',
+  `user_id` varchar(64) NOT NULL COMMENT '用户ID',
+  `user_name` varchar(255) DEFAULT NULL COMMENT '用户名',
+  `content` text NOT NULL COMMENT '帖子内容',
+  `images` json DEFAULT NULL COMMENT '图片列表（JSON）',
+  `tags` json DEFAULT NULL COMMENT '标签列表（JSON）',
+  `like_count` int DEFAULT '0' COMMENT '点赞数',
+  `comment_count` int DEFAULT '0' COMMENT '评论数',
+  `collect_count` int DEFAULT '0' COMMENT '收藏数',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ----------------------------
+-- Table structure for activities
+-- ----------------------------
+DROP TABLE IF EXISTS `activities`;
+CREATE TABLE `activities` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '活动ID',
+  `title` varchar(255) NOT NULL COMMENT '活动标题',
+  `description` text COMMENT '活动描述',
+  `image_url` varchar(255) DEFAULT NULL COMMENT '封面图URL',
+  `start_time` datetime NOT NULL COMMENT '开始时间',
+  `end_time` datetime NOT NULL COMMENT '结束时间',
+  `participant_count` int NOT NULL DEFAULT '0' COMMENT '参与人数',
+  `is_hot` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否热门',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
 -- ----------------------------
 -- Table structure for chatroom_messages
 -- ----------------------------
@@ -333,6 +391,20 @@ CREATE TABLE `group_tags`  (
 -- ----------------------------
 BEGIN;
 COMMIT;
+
+-- ----------------------------
+-- Table structure for group_notices
+-- ----------------------------
+DROP TABLE IF EXISTS `group_notices`;
+CREATE TABLE `group_notices` (
+  `id` varchar(64) NOT NULL COMMENT '公告ID',
+  `group_id` varchar(64) DEFAULT NULL COMMENT '小组ID',
+  `title` varchar(255) DEFAULT NULL COMMENT '公告标题',
+  `content` text COMMENT '公告内容',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '发布时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- ----------------------------
 -- Table structure for groups
