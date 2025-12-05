@@ -9,9 +9,9 @@ import java.util.List;
 @Mapper
 public interface GroupNoticeMapper {
 
-    @Select("SELECT * FROM group_notices WHERE group_id = #{groupId} ORDER BY publish_time DESC LIMIT 10")
-    List<GroupNotice> findNoticesByGroupId(String groupId);
+    @Select("SELECT * FROM group_notices WHERE group_id = #{groupId} ORDER BY created_at DESC LIMIT 10")
+    List<GroupNotice> findNoticesByGroupId(Long groupId);
 
     @Select("SELECT COUNT(*) FROM group_notices WHERE group_id = #{groupId}")
-    Long countNoticesByGroupId(String groupId);
+    Long countNoticesByGroupId(Long groupId);
 }

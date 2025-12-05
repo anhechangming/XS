@@ -1,6 +1,5 @@
 package com.cyd.xs.entity.Group;
 
-import cn.hutool.core.lang.TypeReference;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;

@@ -98,7 +98,7 @@ public class HomeServiceImpl implements HomeService {
     }
 
     @Override
-    public RecommendRefreshDTO refreshRecommend(String userId, Integer pageNum, Integer pageSize) {
+    public RecommendRefreshDTO refreshRecommend(Long userId, Integer pageNum, Integer pageSize) {
         log.info("用户 {} 刷新推荐内容, 页码: {}, 条数: {}", userId, pageNum, pageSize);
 
         try {

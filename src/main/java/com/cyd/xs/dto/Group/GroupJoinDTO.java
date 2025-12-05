@@ -8,6 +8,6 @@ import java.time.LocalDateTime;
 public class GroupJoinDTO {
     private Long groupId;
     private LocalDateTime joinTime;
-    private Integer memberCount;
+    private Integer memberCount ;
 
 }

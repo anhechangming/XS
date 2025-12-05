@@ -3,6 +3,7 @@ package com.cyd.xs.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.cyd.xs.dto.profile.DTO.UserPrivacyUpdateDTO;
 import com.cyd.xs.dto.profile.DTO.UserProfileUpdateDTO;
+import com.cyd.xs.dto.profile.VO.PersonalHomePageVO;
 import com.cyd.xs.dto.profile.VO.UserPrivacyVO;
 import com.cyd.xs.dto.profile.VO.UserProfileVO;
 import com.cyd.xs.dto.user.LoginResponseDTO;
@@ -22,7 +23,7 @@ public interface UserService extends IService<User> {
     /**
      * 用户身份选择
      */
-     void updateCareerStage(Long userId,String careerStage);
+    void updateCareerStage(Long userId,String careerStage);
 
     /**
      * 用户登录（生成JWT令牌）
@@ -58,12 +59,23 @@ public interface UserService extends IService<User> {
      */
     void updatePersonalProfile(String username, UserProfileUpdateDTO updateDTO);
     /*
-    * 获取个人隐私信息：从User表中取隐私字段 + 解析privacy_json
+     * 获取个人隐私信息：从User表中取隐私字段 + 解析privacy_json
      */
 
     UserPrivacyVO getPrivacySettings(String username);
     /*
-    * 编辑个人隐私信息：更新User表中的隐私字段 + 更新privacy_json
+     * 编辑个人隐私信息：更新User表中的隐私字段 + 更新privacy_json
      */
     void updatePrivacySettings(String username, UserPrivacyUpdateDTO updateDTO);
+    /**
+     * 获取个人主页所有核心数据（基础信息+隐私设置+数据统计数）
+     */
+    PersonalHomePageVO getPersonalHomePage(String username);
+    /**
+     * 获取用户名对应的用户ID
+     */
+    PersonalHomePageVO getPersonalHomePageByUserId(Long userId);
+
+
+
 }

@@ -15,19 +15,19 @@ public interface TopicService {
     /**
      * 获取话题详情
      */
-    TopicDetailDTO getTopicDetail(String topicId, Integer pageNum, Integer pageSize, String userId);
+    TopicDetailDTO getTopicDetail(Long topicId, Integer pageNum, Integer pageSize, Long userId);
 
     /**
      * 发布话题评论
      */
-    TopicCommentDTO publishTopicComment(String topicId, String userId, TopicCommentRequest request);
+    TopicCommentDTO publishTopicComment(Long topicId, Long userId, TopicCommentRequest request);
 
     // 新增方法
 
-    TopicCommentLikeDTO likeTopicComment(String commentId, String userId, Boolean isLike);
+    TopicCommentLikeDTO likeTopicComment(Long commentId, Long userId, Boolean isLike);
     ChatRoomDTO getChatRoomList(String status, String keyword, Integer pageNum, Integer pageSize);
-    ChatRoomDetailDTO getChatRoomDetail(String chatRoomId, String userId);
-    ChatRoomMessageDTO sendChatRoomMessage(String chatRoomId, String userId, String content);
-    EssenceNoteDTO generateEssenceNote(String chatRoomId, String userId);
+    ChatRoomDetailDTO getChatRoomDetail(Long chatRoomId, Long userId);
+    ChatRoomMessageDTO sendChatRoomMessage(Long chatRoomId, Long userId, String content);
+    EssenceNoteDTO generateEssenceNote(Long chatRoomId, Long userId);
 
 }

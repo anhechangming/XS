@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
+
+import static net.sf.jsqlparser.util.validation.metadata.NamedObject.role;
 
 
 @Component
@@ -78,7 +78,7 @@ public class JwtConfig {
     /**
      * 生成JWT令牌（用 HS256 算法，安全且兼容）
      */
-    public String generateToken(String userId, String role) {
+    public String generateToken(String userId) {
         Date expireDate = Date.from(
                 LocalDateTime.now()
                         .plus(Duration.ofMillis(expirationMs)) // 使用配置文件的过期时间（15分钟）

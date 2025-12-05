@@ -16,7 +16,7 @@ public interface HomeService {
     /**
      * 推荐内容换一批（新版本，带分页）
      */
-    RecommendRefreshDTO refreshRecommend(String userId, Integer pageNum, Integer pageSize);
+    RecommendRefreshDTO refreshRecommend(Long userId, Integer pageNum, Integer pageSize);
 //
 //    /**
 //     * 首次进入APP - 身份标签选择

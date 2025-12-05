@@ -2,8 +2,10 @@ package com.cyd.xs.service.Impl;
 
 import com.cyd.xs.dto.Group.*;
 import com.cyd.xs.entity.Group.*;
+import com.cyd.xs.entity.User.User;
 import com.cyd.xs.entity.User.UserGroup;
 import com.cyd.xs.mapper.UserGroupMapper;
+import com.cyd.xs.mapper.UserMapper;
 import com.cyd.xs.mapper.groups.*;
 import com.cyd.xs.service.GroupService;
 import com.cyd.xs.util.IDGenerator;
@@ -36,12 +38,15 @@ public class GroupServiceImpl implements GroupService {
     private final ObjectMapper objectMapper;
     private final UserGroupMapper userGroupMapper;
     private final GroupTagMapper groupTagMapper;
+    private final UserMapper userMapper;
+
 
 
     @Override
     public GroupDTO getGroupList(String keyword, String tag, String sort, Integer pageNum, Integer pageSize, Long userId) {
         log.info("获取小组列表: keyword={}, tag={}, sort={}, pageNum={}, pageSize={}, userId={}",
                 keyword, tag, sort, pageNum, pageSize, userId);
+
 
         try {
             int offset = (pageNum - 1) * pageSize;
@@ -95,12 +100,19 @@ public class GroupServiceImpl implements GroupService {
             throw new RuntimeException("获取小组列表失败: " + e.getMessage());
         }
     }
+
     @Transactional
     @Override
     public GroupCreateResultDTO createGroup(GroupCreateDTO request, Long userId) {
-        log.info("用户 {} 创建小组: name={}", userId, request.getName());
+        log.info("用户 {} 创建小组: name={}, tags={}, intro={}",
+                userId, request.getName(), request.getTags(), request.getIntro());
 
         try {
+            // 验证请求参数
+            if (request.getName() == null || request.getName().trim().isEmpty()) {
+                throw new IllegalArgumentException("小组名称不能为空");
+            }
+
             // 创建小组记录
             Group group = new Group();
             group.setName(request.getName());
@@ -111,27 +123,36 @@ public class GroupServiceImpl implements GroupService {
             group.setStatus("pending"); // 待审核
             group.setCreatedAt(LocalDateTime.now());
 
-//            // 将标签列表转换为JSON字符串
-//            if (request.getTags() != null) {
-//                group.setTags(Collections.singletonList(objectMapper.writeValueAsString(request.getTags())));
-//            }
+            log.debug("插入小组前: group={}", group);
 
             int result = groupMapper.insert(group);
 
-            if (result > 0) {
+            log.debug("插入小组后: result={}, group.id={}", result, group.getId());
+
+            if (result > 0 && group.getId() != null) {
                 // 创建者自动加入小组
-                // 使用user_groups表，不是group_members表
                 UserGroup userGroup = new UserGroup();
                 userGroup.setUserId(userId);
                 userGroup.setGroupId(group.getId());
                 userGroup.setRoleInGroup("creator");
                 userGroup.setJoinedAt(LocalDateTime.now());
-                userGroupMapper.insert(userGroup);
 
-                // 添加标签到group_tags表
-                if (request.getTags() != null) {
+                log.debug("插入用户小组关系: userGroup={}", userGroup);
+                int userGroupResult = userGroupMapper.insert(userGroup);
+
+                if (userGroupResult <= 0) {
+                    throw new RuntimeException("用户加入小组失败");
+                }
+
+                // 添加标签到 group_tags 表
+                if (request.getTags() != null && !request.getTags().isEmpty()) {
                     for (String tag : request.getTags()) {
-                        groupTagMapper.insertTag(group.getId(), tag);
+                        log.debug("添加标签: groupId={}, tag={}", group.getId(), tag);
+                        // 方法1：使用 GroupTag 实体类
+                        GroupTag groupTag = new GroupTag();
+                        groupTag.setGroupId(group.getId());
+                        groupTag.setTag(tag);
+                        groupTagMapper.insertTag(groupTag.getGroupId(),tag);
                     }
                 }
 
@@ -139,22 +160,25 @@ public class GroupServiceImpl implements GroupService {
                 response.setGroupId(group.getId());
                 response.setStatus("pending");
                 response.setSubmitTime(LocalDateTime.now());
+
+                log.info("小组创建成功: groupId={}, userId={}", group.getId(), userId);
                 return response;
             } else {
-                throw new RuntimeException("小组创建失败");
+                log.error("小组创建失败: result={}, groupId={}", result, group.getId());
+                throw new RuntimeException("小组创建失败，未获取到小组ID");
             }
         } catch (Exception e) {
             log.error("创建小组失败: {}", e.getMessage(), e);
-            throw new RuntimeException("创建小组失败");
+            throw new RuntimeException("创建小组失败: " + e.getMessage());
         }
     }
 
     @Override
-    public GroupDetailDTO getGroupDetail(String groupId, String userId) {
+    public GroupDetailDTO getGroupDetail(Long groupId, Long userId) {
         log.info("获取小组详情: groupId={}, userId={}", groupId, userId);
 
         try {
-            Group group = groupMapper.findById(Long.valueOf(groupId));
+            Group group = groupMapper.findById(groupId);
             if (group == null) {
                 throw new RuntimeException("小组不存在");
             }
@@ -218,7 +242,7 @@ public class GroupServiceImpl implements GroupService {
 
             // 小组资源
             GroupDetailDTO.GroupResource groupResource = new GroupDetailDTO.GroupResource();
-            List<GroupResource> resources = groupResourceMapper.findResourcesByGroupId(groupId, 0, 5);
+            List<GroupResource> resources = groupResourceMapper.findResourcesByGroupId(groupId, 5);
             groupResource.setTotal(groupResourceMapper.countResourcesByGroupId(groupId));
             groupResource.setPageNum(1);
             groupResource.setPageSize(5);
@@ -263,17 +287,23 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public GroupJoinDTO joinOrQuitGroup(String groupId, String userId, String action) {
+    public GroupJoinDTO joinOrQuitGroup(Long groupId, Long userId, String action) {
         log.info("用户 {} {}小组 {}", userId, "join".equals(action) ? "加入" : "退出", groupId);
 
         try {
-            Group group = groupMapper.findById(Long.valueOf(groupId));
+            Group group = groupMapper.findById(groupId);
             if (group == null) {
                 throw new RuntimeException("小组不存在");
             }
 
             GroupJoinDTO result = new GroupJoinDTO();
-            result.setGroupId(Long.valueOf(groupId));
+            result.setGroupId(groupId);
+
+            // 获取当前成员数，处理null值
+            Integer currentMemberCount = group.getMemberCount();
+            if (currentMemberCount == null) {
+                currentMemberCount = 0;
+            }
 
             if ("join".equals(action)) {
                 // 检查是否已加入
@@ -285,8 +315,8 @@ public class GroupServiceImpl implements GroupService {
                 // 加入小组
                 GroupMember member = new GroupMember();
                 member.setId(IDGenerator.generateId());
-                member.setGroupId(Long.valueOf(groupId));
-                member.setUserId(Long.valueOf(userId));
+                member.setGroupId(groupId);
+                member.setUserId(userId);
                 member.setRole("member");
                 member.setJoinTime(LocalDateTime.now());
                 groupMemberMapper.insert(member);
@@ -295,14 +325,14 @@ public class GroupServiceImpl implements GroupService {
                 groupMapper.updateMemberCount(groupId, 1);
 
                 result.setJoinTime(LocalDateTime.now());
-                result.setMemberCount(group.getMemberCount() + 1);
+                result.setMemberCount(currentMemberCount + 1);
             } else if ("quit".equals(action)) {
                 // 退出小组
                 int deleted = groupMemberMapper.deleteByGroupAndUser(groupId, userId);
                 if (deleted > 0) {
                     // 更新小组成员数
                     groupMapper.updateMemberCount(groupId, -1);
-                    result.setMemberCount(Math.max(0, group.getMemberCount() - 1));
+                    result.setMemberCount(Math.max(0, currentMemberCount - 1));
                 } else {
                     throw new RuntimeException("未加入该小组");
                 }
@@ -319,10 +349,16 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public GroupDynamicResultDTO publishDynamic(String groupId, GroupDynamicDTO request, String userId) {
+    public GroupDynamicResultDTO publishDynamic(Long groupId, GroupDynamicDTO request, Long userId) {
         log.info("用户 {} 在小组 {} 发布动态", userId, groupId);
 
         try {
+            // 获取用户信息
+            User user = userMapper.findById(userId);
+            if (user == null) {
+                throw new RuntimeException("用户不存在");
+            }
+
             // 检查用户是否已加入小组
             GroupMember member = groupMemberMapper.findByGroupAndUser(groupId, userId);
             if (member == null) {
@@ -330,11 +366,11 @@ public class GroupServiceImpl implements GroupService {
             }
 
             GroupDynamic dynamic = new GroupDynamic();
-            dynamic.setId(Long.valueOf(IDGenerator.generateId()));
-            dynamic.setGroupId(Long.valueOf(groupId));
-            dynamic.setUserId(Long.valueOf(userId));
-            dynamic.setNickname("用户" + userId.substring(0, Math.min(userId.length(), 6))); // 防止索引越界
-            dynamic.setAvatar("https://jobhub.com/avatar/default.png");
+            dynamic.setId(IDGenerator.generateId());
+            dynamic.setGroupId(groupId);
+            dynamic.setUserId(userId);
+            dynamic.setNickname(user.getDisplayName() != null ? user.getDisplayName() : user.getUsername()); // 防止索引越界
+            dynamic.setAvatar(user.getAvatarUrl() != null ? user.getAvatarUrl() : "https://jobhub.com/avatar/default.png");
             dynamic.setTitle(request.getTitle());
             dynamic.setContent(request.getContent());
             dynamic.setCreatedAt(LocalDateTime.now());
@@ -349,7 +385,7 @@ public class GroupServiceImpl implements GroupService {
 
             // 处理标签 - 修复这里
             if (request.getTags() != null && !request.getTags().isEmpty()) {
-                dynamic.setTags(request.getTags()); // 直接赋值List<String>
+                dynamic.setTags(Collections.singletonList(objectMapper.writeValueAsString(request.getTags())));
             }
 
             int result = groupDynamicMapper.insert(dynamic);
@@ -373,25 +409,59 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public GroupResourceResultDTO uploadResource(String groupId, GroupResourceDTO request, String userId) {
+    public GroupResourceResultDTO uploadResource(Long groupId, GroupResourceDTO request, Long userId) {
         log.info("用户 {} 在小组 {} 上传资源", userId, groupId);
 
         try {
+
+
+            // 1. 验证小组是否存在
+            Group group = groupMapper.findById(groupId);
+            if (group == null) {
+                throw new RuntimeException("小组不存在");
+            }
+
+            // 2. 检查小组状态
+//            if (!"active".equals(group.getStatus())) {
+//                throw new RuntimeException("小组当前不可用");
+//            }
+            if (!"active".equals(group.getStatus()) && !"pending".equals(group.getStatus())) {
+                throw new RuntimeException("小组当前未激活");
+            }
+
             // 检查用户是否已加入小组
             GroupMember member = groupMemberMapper.findByGroupAndUser(groupId, userId);
             if (member == null) {
                 throw new RuntimeException("请先加入小组");
             }
+            // 获取用户信息
+            User user = userMapper.findById(userId);
+            if (user == null) {
+                throw new RuntimeException("用户不存在");
+            }
+
+            String uploaderName = user.getDisplayName() != null ? user.getDisplayName() : user.getUsername();
+
+            // 5. 验证请求参数
+            if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
+                throw new RuntimeException("资源标题不能为空");
+            }
+            if (request.getFileUrl() == null || request.getFileUrl().trim().isEmpty()) {
+                throw new RuntimeException("文件URL不能为空");
+            }
 
             GroupResource resource = new GroupResource();
-            resource.setId(Long.valueOf(IDGenerator.generateId()));
-            resource.setGroupId(Long.valueOf(groupId)); // 转换为Long
+            resource.setId(IDGenerator.generateId());
+            resource.setGroupId(groupId);
             resource.setTitle(request.getTitle());
-            resource.setDescription(request.getDescription());
-            resource.setTag(request.getTag());
-            resource.setUploader("用户" + userId.substring(0, Math.min(userId.length(), 6))); // 防止索引越界
+            resource.setDescription(request.getDescription() != null ? request.getDescription().trim() : null);
+            resource.setUploaderId(userId);
+            resource.setTag(request.getTag() != null ? request.getTag().trim() : null);
+            resource.setUploader(uploaderName);
             resource.setCreatedAt(LocalDateTime.now());
             resource.setDownloadCount(0);
+            resource.setLink(request.getFileUrl());
+            resource.setType(getFileType(request.getFileUrl())); // 根据文件URL判断类型
             resource.setStatus("pending"); // 待审核
 
             int result = groupResourceMapper.insert(resource);
@@ -400,6 +470,8 @@ public class GroupServiceImpl implements GroupService {
                 response.setResourceId(resource.getId());
                 response.setStatus("pending");
                 response.setSubmitTime(LocalDateTime.now());
+                log.info("资源上传成功: 资源ID={}, 用户ID={}, 小组ID={}",
+                        resource.getId(), userId, groupId);
                 return response;
             } else {
                 throw new RuntimeException("资源上传失败");

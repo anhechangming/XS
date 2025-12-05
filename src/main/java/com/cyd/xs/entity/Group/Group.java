@@ -18,9 +18,10 @@ import java.util.List;
 @Entity
 @Table(name = "`groups`")
 public class Group {
-    @TableId(type = IdType.AUTO)
     @Id
+    @TableId(type = IdType.AUTO)
     private Long id;                // 小组ID
+
     private String name;            // 小组名称
     private String intro;           // 小组简介
     private String avatar;          // 小组头像URL
@@ -31,6 +32,10 @@ public class Group {
 
 
     private Integer memberCount;  // 通过user_groups表统计
+
+    public Integer getSafeMemberCount() {
+        return memberCount != null ? memberCount : 0;
+    }
 
     @Transient
     private String tagsStr;  // 用于接收 GROUP_CONCAT 的结果

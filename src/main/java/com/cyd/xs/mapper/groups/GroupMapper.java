@@ -59,7 +59,7 @@ public interface GroupMapper extends BaseMapper<Group> {
     Long countGroups(@Param("keyword") String keyword, @Param("tag") String tag);
 
     @Update("UPDATE `groups` SET member_count = member_count + #{increment} WHERE id = #{groupId}")
-    int updateMemberCount(@Param("groupId") String groupId, @Param("increment") int increment);
+    int updateMemberCount(@Param("groupId") Long groupId, @Param("increment") int increment);
 
     @Select("SELECT * FROM `groups` WHERE id = #{groupId} AND status = 'normal'")
     Group selectValidGroupById(@Param("groupId") Long groupId);

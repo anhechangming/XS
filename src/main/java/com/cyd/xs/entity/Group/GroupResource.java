@@ -1,5 +1,7 @@
 package com.cyd.xs.entity.Group;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -12,6 +14,7 @@ import java.time.LocalDateTime;
 @Table(name = "group_resources")
 public class GroupResource {
     @Id
+    @TableId(type = IdType.AUTO)
     private Long id;  // BIGINT类型
 
     private Long groupId;       // 对应group_id字段
@@ -28,4 +31,5 @@ public class GroupResource {
     // 表中没有但接口需要的字段
     private String uploader;    // 需要通过users表查询
     private String tag;         // 需要从其他地方获取
+        // 需要从其他地方获取
 }

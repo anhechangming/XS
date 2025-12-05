@@ -57,6 +57,51 @@ public class UserRegisterDTO {
         this.displayName = displayName;
     }
 
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
 
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
 
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getCareerStage() {
+        return careerStage;
+    }
+
+    public void setCareerStage(String careerStage) {
+        this.careerStage = careerStage;
+    }
+
+    public List<String> getFields() {
+        return fields;
+    }
+
+    public void setFields(List<String> fields) {
+        this.fields = fields;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getEducation() {
+        return education;
+    }
+
+    public void setEducation(String education) {
+        this.education = education;
+    }
 }

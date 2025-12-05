@@ -10,6 +10,7 @@ public class UserDataStatsVO {
     private Integer postCount;          // 我发布的帖子数
     private Integer collectionCount;    // 我的收藏数
     private Integer likesReceived = 0;     // 获赞数
+    private Integer browseHistoryCount = 0;  // 浏览历史数
 
     public Integer getGroupCount() {
         return groupCount;
@@ -41,5 +42,9 @@ public class UserDataStatsVO {
 
     public void setLikesReceived(Integer likesReceived) {
         this.likesReceived = likesReceived;
+    }
+
+    public void setBrowseHistoryCount(Integer integer) {
+        this.browseHistoryCount = integer;
     }
 }

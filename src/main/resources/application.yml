@@ -25,6 +25,11 @@ spring:
       max-request-size: 20MB
       max-file-size: 5MB
 
+  jackson:
+    deserialization:
+      ACCEPT_EMPTY_STRING_AS_NULL_OBJECT: true
+      ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT: true
+
 # 自定义图片上传配置
 upload:
   # 本地存储根路径（建议绝对路径，避免部署问题）
@@ -51,6 +56,11 @@ mybatis-plus:
   type-aliases-package: com.cyd.xs.entity
   # 指定类型处理器所在的包
   type-handlers-package: com.cyd.xs.config
+  global-config:
+    db-config:
+      table-prefix:
+      table-underline: true  # 使用下划线命名法
+      id-type: auto
   configuration:
     # 开启驼峰命名自动转换（如数据库 is_read → 实体类 isRead）
     map-underscore-to-camel-case: true

@@ -1,5 +1,6 @@
 package com.cyd.xs.mapper.groups;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.cyd.xs.entity.Group.GroupResource;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -9,15 +10,11 @@ import org.apache.ibatis.annotations.Select;
 import java.util.List;
 
 @Mapper
-public interface GroupResourceMapper {
+public interface GroupResourceMapper extends BaseMapper<GroupResource> {
 
-    @Insert("INSERT INTO group_resources (id, group_id, title, description, file_url, file_name, file_size, tag, uploader, upload_time, download_count, status) " +
-            "VALUES (#{id}, #{groupId}, #{title}, #{description}, #{fileUrl}, #{fileName}, #{fileSize}, #{tag}, #{uploader}, #{uploadTime}, #{downloadCount}, #{status})")
-    int insert(GroupResource resource);
-
-    @Select("SELECT * FROM group_resources WHERE group_id = #{groupId} AND status = 'approved' ORDER BY upload_time DESC LIMIT #{offset}, #{pageSize}")
-    List<GroupResource> findResourcesByGroupId(@Param("groupId") String groupId, @Param("offset") int offset, @Param("pageSize") int pageSize);
+    @Select("SELECT * FROM group_resources WHERE group_id = #{groupId} AND status = 'approved' ORDER BY created_at DESC LIMIT #{offset}, #{limit}")
+    List<GroupResource> findResourcesByGroupId(@Param("groupId") Long groupId, @Param("limit") int limit);
 
     @Select("SELECT COUNT(*) FROM group_resources WHERE group_id = #{groupId} AND status = 'approved'")
-    Long countResourcesByGroupId(String groupId);
+    Long countResourcesByGroupId(Long groupId);
 }

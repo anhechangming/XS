@@ -1,12 +1,18 @@
 package com.cyd.xs.dto.Group;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class GroupDynamicDTO {
+    @NotBlank(message = "标题不能为空")
+    @Size(min = 1, max = 100, message = "标题长度必须在1-100字之间")
     private String title;
+    @NotBlank(message = "内容不能为空")
+    @Size(min = 1, max = 15000, message = "内容长度必须在1-5000字之间")
     private String content;
     private List<String> imageUrls;
     private List<String> tags;

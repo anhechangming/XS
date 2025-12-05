@@ -11,11 +11,11 @@ public interface GroupService {
     @Transactional
     GroupCreateResultDTO createGroup(GroupCreateDTO request, Long userId);
 
-    GroupDetailDTO getGroupDetail(String groupId, String userId);
+    GroupDetailDTO getGroupDetail(Long groupId, Long userId);
 
-    GroupJoinDTO joinOrQuitGroup(String groupId, String userId, String action);
+    GroupJoinDTO joinOrQuitGroup(Long groupId, Long userId, String action);
 
-    GroupDynamicResultDTO publishDynamic(String groupId, GroupDynamicDTO request, String userId);
+    GroupDynamicResultDTO publishDynamic(Long groupId, GroupDynamicDTO request, Long userId);
 
-    GroupResourceResultDTO uploadResource(String groupId, GroupResourceDTO request, String userId);
+    GroupResourceResultDTO uploadResource(Long groupId, GroupResourceDTO request, Long userId);
 }

@@ -2,10 +2,16 @@ package com.cyd.xs.Utils;
 
 
 import com.cyd.xs.config.CustomUserPrincipal;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityUtils {
+
 
     /**
      * 从 Authentication 中获取 userId

@@ -7,10 +7,12 @@ import com.cyd.xs.dto.Topic.*;
 import com.cyd.xs.entity.Topic.ChatRoom.ChatRoomMessage;
 import com.cyd.xs.entity.Topic.Topic;
 import com.cyd.xs.entity.Topic.TopicPost;
+import com.cyd.xs.entity.User.User;
 import com.cyd.xs.mapper.ChatRoom.ChatRoomMapper;
 import com.cyd.xs.mapper.ChatRoom.ChatRoomMessageMapper;
 import com.cyd.xs.mapper.Topic.TopicMapper;
 import com.cyd.xs.mapper.Topic.TopicPostMapper;
+import com.cyd.xs.mapper.UserMapper;
 import com.cyd.xs.service.TopicService;
 import com.cyd.xs.util.IDGenerator;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +35,7 @@ public class TopicServiceImpl implements TopicService {
     private final TopicPostMapper topicPostMapper;
     private final ChatRoomMapper chatRoomMapper;
     private final ChatRoomMessageMapper chatRoomMessageMapper;
+    private final UserMapper userMapper;
 
 
     @Override
@@ -53,7 +57,7 @@ public class TopicServiceImpl implements TopicService {
                 item.setId(topic.getId());
                 item.setTitle(topic.getTitle());
                 item.setLevel("A"); // 默认等级，实际应从数据库获取
-                item.setTags(Arrays.asList(topic.getTag())); // 假设tag字段存储单个标签
+                item.setTags(Collections.singletonList(topic.getTag())); // 假设tag字段存储单个标签
                 item.setParticipantCount(topic.getParticipantCount());
                 item.setInteractionCount(topic.getInteractiveCount());
                 item.setLatestReplyTime(topic.getLatestReplyTime());
@@ -70,7 +74,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public TopicDetailDTO getTopicDetail(String topicId, Integer pageNum, Integer pageSize, String userId) {
+    public TopicDetailDTO getTopicDetail(Long topicId, Integer pageNum, Integer pageSize, Long userId) {
         log.info("获取话题详情: topicId={}, pageNum={}, pageSize={}, userId={}",
                 topicId, pageNum, pageSize, userId);
 
@@ -131,14 +135,22 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     @Transactional
-    public TopicCommentDTO publishTopicComment(String topicId, String userId, TopicCommentRequest request) {
+    public TopicCommentDTO publishTopicComment(Long topicId, Long userId, TopicCommentRequest request) {
         log.info("用户 {} 在话题 {} 发布评论", userId, topicId);
 
         try {
+
+            // 获取用户信息
+
+            User user = userMapper.findById(userId);
+            if (user == null) {
+                throw new RuntimeException("用户不存在");
+            }
+
             TopicPost post = new TopicPost();
             post.setId(Long.valueOf(String.valueOf(IDGenerator.generateId())));
-            post.setTopicId(Long.valueOf(topicId));
-            post.setUserId(Long.valueOf(userId));
+            post.setTopicId(topicId);
+            post.setUserId(userId);
             post.setContent(request.getContent());
             post.setCreatedAt(LocalDateTime.now());
 
@@ -166,10 +178,18 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     @Transactional
-    public TopicCommentLikeDTO likeTopicComment(String commentId, String userId, Boolean isLike) {
+    public TopicCommentLikeDTO likeTopicComment(Long commentId, Long userId, Boolean isLike) {
         log.info("用户 {} {}评论 {}", userId, isLike ? "点赞" : "取消点赞", commentId);
 
         try {
+
+            // 获取用户信息
+
+            User user = userMapper.findById(userId);
+            if (user == null) {
+                throw new RuntimeException("用户不存在");
+            }
+
             // 这里应该查询评论并更新点赞数
             TopicPost comment = topicPostMapper.selectById(commentId);
             if (comment == null) {
@@ -222,7 +242,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public ChatRoomDetailDTO getChatRoomDetail(String chatRoomId, String userId) {
+    public ChatRoomDetailDTO getChatRoomDetail(Long chatRoomId, Long userId) {
         log.info("获取聊天室详情: chatRoomId={}, userId={}", chatRoomId, userId);
 
         try {
@@ -271,7 +291,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public ChatRoomMessageDTO sendChatRoomMessage(String chatRoomId, String userId, String content) {
+    public ChatRoomMessageDTO sendChatRoomMessage(Long chatRoomId, Long userId, String content) {
         // 1. 验证用户权限
         // 2. 创建消息实体
         ChatRoomMessage message = new ChatRoomMessage();
@@ -298,7 +318,7 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     @Transactional
-    public EssenceNoteDTO generateEssenceNote(String chatRoomId, String userId) {
+    public EssenceNoteDTO generateEssenceNote(Long chatRoomId, Long userId) {
         log.info("用户 {} 为聊天室 {} 生成精华笔记", userId, chatRoomId);
 
         try {

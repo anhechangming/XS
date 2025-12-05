@@ -14,6 +14,8 @@ public interface UserMapper extends BaseMapper<com.cyd.xs.entity.User.User> {
     // 校验用户名是否已存在
     Integer countByUsername(@Param("username") String username);
 
+    @Select("SELECT * FROM users WHERE username = #{username}")
+    User findByUsername(@Param("username") String username);
 
     @Select("SELECT * FROM users WHERE id = #{userId}")
     User findById(Long userId);

@@ -55,7 +55,7 @@ public class HomeController {
             Authentication authentication) {
         try {
             String userId = getUserIdFromAuthentication(authentication);
-            RecommendRefreshDTO result = homeService.refreshRecommend(userId, pageNum, pageSize);
+            RecommendRefreshDTO result = homeService.refreshRecommend(Long.valueOf(userId), pageNum, pageSize);
             return ResponseEntity.ok(Result.success("推荐内容刷新成功", result));
         } catch (Exception e) {
             System.err.println("推荐内容刷新失败: " + e.getMessage());

@@ -2,9 +2,11 @@ package com.cyd.xs.util;
 
 import cn.hutool.core.util.IdUtil;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 public class IDGenerator {
     public static Long generateId() {
-        return Long.valueOf(IdUtil.simpleUUID());
+        return System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(1000, 9999);
     }
 
     public static String generateContentId() {

@@ -9,6 +9,4 @@ public class GroupResourceResultDTO {
     private Long resourceId;
     private String status;
     private LocalDateTime submitTime;
-
-
 }

@@ -11,8 +11,8 @@ import java.util.List;
 @Mapper
 public interface ChatRoomMessageMapper {
 
-    @Insert("INSERT INTO chat_room_messages (id, chat_room_id, user_id, nickname, avatar, content, send_time, is_host) " +
-            "VALUES (#{id}, #{chatRoomId}, #{userId}, #{nickname}, #{avatar}, #{content}, #{sendTime}, #{isHost})")
+    @Insert("INSERT INTO chat_room_messages (id, chat_room_id,content, send_time, user_id) " +
+            "VALUES (#{id}, #{chatRoomId}, #{content}, #{sendTime},#{userId})")
     int insert(ChatRoomMessage message);
 
     @Select("SELECT * FROM chat_room_messages WHERE chat_room_id = #{chatRoomId} ORDER BY send_time DESC LIMIT 50")

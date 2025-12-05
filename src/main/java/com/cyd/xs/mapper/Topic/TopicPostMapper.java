@@ -11,7 +11,7 @@ import java.util.List;
 public interface TopicPostMapper extends BaseMapper<TopicPost> {
 
     @Select("SELECT * FROM topic_posts WHERE topic_id = #{topicId} ORDER BY created_at DESC LIMIT #{pageSize} OFFSET #{offset}")
-    List<TopicPost> findPostsByTopicId(String topicId, int offset, int pageSize);
+    List<TopicPost> findPostsByTopicId(Long topicId, int offset, int pageSize);
 
     String generateId();
 }
