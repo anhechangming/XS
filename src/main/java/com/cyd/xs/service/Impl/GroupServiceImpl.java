@@ -62,7 +62,7 @@ public class GroupServiceImpl implements GroupService {
             // 转换DTO
             List<GroupDTO.GroupItem> groupList = groups.stream().map(group -> {
                 GroupDTO.GroupItem item = new GroupDTO.GroupItem();
-                item.setId(String.valueOf(group.getId()));
+                item.setId(group.getId());
                 item.setName(group.getName());
 
                 // 解析标签
@@ -136,7 +136,7 @@ public class GroupServiceImpl implements GroupService {
                 }
 
                 GroupCreateResultDTO response = new GroupCreateResultDTO();
-                response.setGroupId(String.valueOf(group.getId()));
+                response.setGroupId(group.getId());
                 response.setStatus("pending");
                 response.setSubmitTime(LocalDateTime.now());
                 return response;
@@ -163,7 +163,7 @@ public class GroupServiceImpl implements GroupService {
 
             // 小组基本信息
             GroupDetailDTO.GroupInfo groupInfo = new GroupDetailDTO.GroupInfo();
-            groupInfo.setId(String.valueOf(group.getId()));
+            groupInfo.setId(group.getId());
             groupInfo.setName(group.getName());
 
             // 解析tags - 修复这里
@@ -192,8 +192,8 @@ public class GroupServiceImpl implements GroupService {
 
             List<GroupDetailDTO.DynamicItem> dynamicList = dynamics.stream().map(dynamic -> {
                 GroupDetailDTO.DynamicItem item = new GroupDetailDTO.DynamicItem();
-                item.setId(String.valueOf(dynamic.getId()));
-                item.setUserId(String.valueOf(dynamic.getUserId()));
+                item.setId(dynamic.getId());
+                item.setUserId(Collections.singletonList(dynamic.getUserId()));
                 item.setNickname(dynamic.getNickname());
                 item.setAvatar(dynamic.getAvatar());
                 item.setTitle(dynamic.getTitle());
@@ -225,7 +225,7 @@ public class GroupServiceImpl implements GroupService {
 
             List<GroupDetailDTO.ResourceItem> resourceList = resources.stream().map(resource -> {
                 GroupDetailDTO.ResourceItem item = new GroupDetailDTO.ResourceItem();
-                item.setId(String.valueOf(resource.getId()));
+                item.setId(resource.getId());
                 item.setTitle(resource.getTitle());
                 item.setType(resource.getType()); // 添加类型
                 item.setUploader(resource.getUploader());
@@ -245,7 +245,7 @@ public class GroupServiceImpl implements GroupService {
 
             List<GroupDetailDTO.NoticeItem> noticeList = notices.stream().map(notice -> {
                 GroupDetailDTO.NoticeItem item = new GroupDetailDTO.NoticeItem();
-                item.setId(String.valueOf(notice.getId()));
+                item.setId(notice.getId());
                 item.setTitle(notice.getTitle());
                 item.setContent(notice.getContent());
                 item.setPublishTime(notice.getCreatedAt());
@@ -273,7 +273,7 @@ public class GroupServiceImpl implements GroupService {
             }
 
             GroupJoinDTO result = new GroupJoinDTO();
-            result.setGroupId(groupId);
+            result.setGroupId(Long.valueOf(groupId));
 
             if ("join".equals(action)) {
                 // 检查是否已加入
@@ -285,8 +285,8 @@ public class GroupServiceImpl implements GroupService {
                 // 加入小组
                 GroupMember member = new GroupMember();
                 member.setId(IDGenerator.generateId());
-                member.setGroupId(groupId);
-                member.setUserId(userId);
+                member.setGroupId(Long.valueOf(groupId));
+                member.setUserId(Long.valueOf(userId));
                 member.setRole("member");
                 member.setJoinTime(LocalDateTime.now());
                 groupMemberMapper.insert(member);
@@ -355,7 +355,7 @@ public class GroupServiceImpl implements GroupService {
             int result = groupDynamicMapper.insert(dynamic);
             if (result > 0) {
                 GroupDynamicResultDTO response = new GroupDynamicResultDTO();
-                response.setDynamicId(String.valueOf(dynamic.getId()));
+                response.setDynamicId(dynamic.getId());
                 response.setStatus("pending");
                 response.setSubmitTime(LocalDateTime.now());
                 return response;
@@ -397,7 +397,7 @@ public class GroupServiceImpl implements GroupService {
             int result = groupResourceMapper.insert(resource);
             if (result > 0) {
                 GroupResourceResultDTO response = new GroupResourceResultDTO();
-                response.setResourceId(String.valueOf(resource.getId()));
+                response.setResourceId(resource.getId());
                 response.setStatus("pending");
                 response.setSubmitTime(LocalDateTime.now());
                 return response;

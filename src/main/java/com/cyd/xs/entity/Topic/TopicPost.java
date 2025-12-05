@@ -16,10 +16,10 @@ public class TopicPost {
     private Long id;
 
     @Column(nullable = false)
-    private String topicId;
+    private Long topicId;
 
     @Column(nullable = false)
-    private String userId;
+    private Long userId;
 
     private String userName;
 
@@ -40,7 +40,7 @@ public class TopicPost {
     public TopicPost() {
     }
 
-    public TopicPost(Long id, String topicId, String userId, String userName, String content, String images, String tags, Integer likeCount, Integer commentCount, Integer collectCount, LocalDateTime createdAt) {
+    public TopicPost(Long id, Long topicId, Long userId, String userName, String content, String images, String tags, Integer likeCount, Integer commentCount, Integer collectCount, LocalDateTime createdAt) {
         this.id = id;
         this.topicId = topicId;
         this.userId = userId;

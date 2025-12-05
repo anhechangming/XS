@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class EssenceNoteDTO {
-    private String noteId;
+    private Long noteId;
     private String noteUrl;
     private LocalDateTime generateTime;
 }

@@ -14,7 +14,7 @@ public class ChatRoomDTO {
 
     @Data
     public static class ChatRoomItem {
-        private String id;
+        private Long id;
         private String title;
         private String theme;
         private String status; // preview/ongoing/ended

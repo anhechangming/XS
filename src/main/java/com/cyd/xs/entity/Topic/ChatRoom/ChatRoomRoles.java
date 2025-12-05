@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 public class ChatRoomRoles {
     @Id
     private Long id;
-    private String chatroomId;
+    private Long chatroomId;
     private String role;
-    private Integer userId;
+    private Long userId;
     private LocalDateTime assignedAt;
 }

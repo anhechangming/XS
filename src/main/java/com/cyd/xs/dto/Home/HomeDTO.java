@@ -29,7 +29,7 @@ public class HomeDTO {
 
     @Data
     public static class HotActivity {
-        private String id;
+        private Long id;
         private String title;
         private String time;
         private Integer participantCount;
@@ -46,7 +46,7 @@ public class HomeDTO {
 
     @Data
     public static class ContentItem {
-        private String id;
+        private Long id;
         private String title;
         private String type;           // article/topic/post
         private String author;
@@ -63,7 +63,7 @@ public class HomeDTO {
     // 身份选择数据结构（保持兼容）
     @Data
     public static class RecommendContent {
-        private String contentId;
+        private Long contentId;
         private String title;
         private String type;
         private String author;
@@ -73,14 +73,14 @@ public class HomeDTO {
 
     @Data
     public static class CommunityTopic {
-        private String topicId;
+        private Long topicId;
         private String title;
         private Integer participantCount;
     }
 
     @Data
     public static class Activity {
-        private String activityId;
+        private Long activityId;
         private String title;
         private String time;
     }

@@ -13,7 +13,7 @@ public class RecommendRefreshDTO {
 
     @Data
     public static class ContentItem {
-        private String id;
+        private Long id;
         private String title;
         private String type;           // article/topic/post
         private String author;

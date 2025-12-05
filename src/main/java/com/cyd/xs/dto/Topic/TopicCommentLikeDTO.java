@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class TopicCommentLikeDTO {
-    private String commentId;
+    private Long commentId;
     private Integer likeCount;
     private Boolean isLike;
 }

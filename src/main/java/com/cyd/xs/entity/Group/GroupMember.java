@@ -14,8 +14,8 @@ public class GroupMember {
     @Id
     private Long id;
 
-    private String groupId;
-    private String userId;
+    private Long groupId;
+    private Long userId;
     private String role; // member/manager/creator
     private LocalDateTime joinTime;
 

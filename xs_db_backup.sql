@@ -23,7 +23,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 DROP TABLE IF EXISTS `topics`;
 CREATE TABLE `topics` (
-  `id` varchar(64) NOT NULL COMMENT '话题ID',
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '话题ID',
   `title` varchar(255) NOT NULL COMMENT '话题标题',
   `level` varchar(16) DEFAULT NULL COMMENT '等级（A/B/C）',
   `tag` varchar(64) DEFAULT NULL COMMENT '标签类型',
@@ -42,9 +42,9 @@ CREATE TABLE `topics` (
 -- ----------------------------
 DROP TABLE IF EXISTS `topic_posts`;
 CREATE TABLE `topic_posts` (
-  `id` varchar(64) NOT NULL COMMENT '帖子ID',
-  `topic_id` varchar(64) NOT NULL COMMENT '话题ID',
-  `user_id` varchar(64) NOT NULL COMMENT '用户ID',
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '帖子ID',
+  `topic_id` bigint NOT NULL COMMENT '话题ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
   `user_name` varchar(255) DEFAULT NULL COMMENT '用户名',
   `content` text NOT NULL COMMENT '帖子内容',
   `images` json DEFAULT NULL COMMENT '图片列表（JSON）',
@@ -53,23 +53,6 @@ CREATE TABLE `topic_posts` (
   `comment_count` int DEFAULT '0' COMMENT '评论数',
   `collect_count` int DEFAULT '0' COMMENT '收藏数',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-
--- ----------------------------
--- Table structure for activities
--- ----------------------------
-DROP TABLE IF EXISTS `activities`;
-CREATE TABLE `activities` (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '活动ID',
-  `title` varchar(255) NOT NULL COMMENT '活动标题',
-  `description` text COMMENT '活动描述',
-  `image_url` varchar(255) DEFAULT NULL COMMENT '封面图URL',
-  `start_time` datetime NOT NULL COMMENT '开始时间',
-  `end_time` datetime NOT NULL COMMENT '结束时间',
-  `participant_count` int NOT NULL DEFAULT '0' COMMENT '参与人数',
-  `is_hot` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否热门',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -98,15 +81,14 @@ COMMIT;
 -- Table structure for chatroom_roles
 -- ----------------------------
 DROP TABLE IF EXISTS `chatroom_roles`;
-CREATE TABLE `chatroom_roles`  (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-  `chatroom_id` bigint NOT NULL COMMENT '聊天室ID',
-  `user_id` bigint NOT NULL COMMENT '用户ID',
-  `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '角色',
-  `assigned_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '赋予角色时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `chatroom_user_unique`(`chatroom_id` ASC, `user_id` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+CREATE TABLE `chatroom_roles` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '角色ID',
+  `chatroom_id` varchar(64) DEFAULT NULL COMMENT '聊天室ID',
+  `role` varchar(32) DEFAULT NULL COMMENT '角色',
+  `user_id` bigint DEFAULT NULL COMMENT '用户ID',
+  `assigned_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '赋予角色时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------
 -- Records of chatroom_roles
@@ -118,21 +100,21 @@ COMMIT;
 -- Table structure for chatrooms
 -- ----------------------------
 DROP TABLE IF EXISTS `chatrooms`;
-CREATE TABLE `chatrooms`  (
+CREATE TABLE `chatrooms` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '聊天室ID',
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '标题',
-  `theme` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主题',
-  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '状态',
-  `host_id` bigint NOT NULL COMMENT '主持人用户ID',
-  `start_time` datetime NOT NULL COMMENT '开始时间',
-  `end_time` datetime NULL DEFAULT NULL COMMENT '结束时间',
-  `notice` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '公告',
-  `topic_id` bigint NULL DEFAULT NULL COMMENT '关联话题ID',
-  `scope` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '全员可见' COMMENT '可见范围',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  `title` varchar(255) DEFAULT NULL COMMENT '标题',
+  `theme` varchar(255) DEFAULT NULL COMMENT '主题',
+  `status` varchar(32) DEFAULT NULL COMMENT '状态（preview/ongoing/ended）',
+  `host_id` bigint DEFAULT NULL COMMENT '主持人用户ID',
+  `start_time` datetime DEFAULT NULL COMMENT '开始时间',
+  `end_time` datetime DEFAULT NULL COMMENT '结束时间',
+  `notice` text COMMENT '公告',
+  `topic_id` bigint DEFAULT NULL COMMENT '关联话题ID',
+  `scope` varchar(50) DEFAULT NULL COMMENT '可见范围',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------
 -- Records of chatrooms
@@ -378,13 +360,12 @@ COMMIT;
 -- Table structure for group_tags
 -- ----------------------------
 DROP TABLE IF EXISTS `group_tags`;
-CREATE TABLE `group_tags`  (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-  `group_id` bigint NOT NULL COMMENT '小组ID',
-  `tag` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '标签名称',
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `group_tag_unique`(`group_id` ASC, `tag` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+CREATE TABLE `group_tags` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '标签ID',
+  `group_id` bigint DEFAULT NULL COMMENT '小组ID',
+  `tag` varchar(64) DEFAULT NULL COMMENT '标签名称',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------
 -- Records of group_tags
@@ -397,14 +378,13 @@ COMMIT;
 -- ----------------------------
 DROP TABLE IF EXISTS `group_notices`;
 CREATE TABLE `group_notices` (
-  `id` varchar(64) NOT NULL COMMENT '公告ID',
-  `group_id` varchar(64) DEFAULT NULL COMMENT '小组ID',
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '公告ID',
+  `group_id` bigint DEFAULT NULL COMMENT '小组ID',
   `title` varchar(255) DEFAULT NULL COMMENT '公告标题',
   `content` text COMMENT '公告内容',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '发布时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 
 -- ----------------------------
 -- Table structure for groups

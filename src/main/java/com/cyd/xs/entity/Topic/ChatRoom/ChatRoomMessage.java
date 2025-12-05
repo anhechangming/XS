@@ -14,8 +14,8 @@ public class ChatRoomMessage {
     @Id
     private Long id;
 
-    private String chatRoomId;
-    private String userId;
+    private Long chatRoomId;
+    private Long userId;
     //private String avatar;
     private String content;
     private LocalDateTime sendTime;

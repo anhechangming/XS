@@ -17,11 +17,11 @@ public class ChatRoom {
     private String title;
     private String theme;
     private String status; // preview/ongoing/ended
-    private String hostId;
+    private Long hostId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String notice;
-    private Integer topicId;
+    private Long topicId;
     private String scope;//可见范围
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

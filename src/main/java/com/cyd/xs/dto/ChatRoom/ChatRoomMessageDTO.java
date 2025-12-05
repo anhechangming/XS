@@ -6,6 +6,6 @@ import java.time.LocalDateTime;
 
 @Data
 public class ChatRoomMessageDTO {
-    private String messageId;
+    private Long messageId;
     private LocalDateTime sendTime;
 }

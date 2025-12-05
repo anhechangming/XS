@@ -14,7 +14,7 @@ public class GroupNotice {
     @Id
     private Long id;
 
-    private String groupId;
+    private Long groupId;
     private String title;
     private String content;
     private LocalDateTime createdAt;

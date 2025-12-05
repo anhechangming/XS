@@ -13,7 +13,7 @@ public class TopicDetailDTO {
 
     @Data
     public static class TopicInfo {
-        private String id;
+        private Long id;
         private String title;
         private String level;
         private List<String> tags;
@@ -44,8 +44,8 @@ public class TopicDetailDTO {
 
     @Data
     public static class CommentItem {
-        private String id;
-        private String userId;
+        private Long id;
+        private Long userId;
         private String nickname;
         private String avatar;
         private String content;

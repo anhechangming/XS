@@ -13,7 +13,7 @@ public class ChatRoomDetailDTO {
 
     @Data
     public static class ChatRoomInfo {
-        private String id;
+        private Long id;
         private String title;
         private String theme;
         private String status;
@@ -31,8 +31,8 @@ public class ChatRoomDetailDTO {
 
     @Data
     public static class MessageItem {
-        private String id;
-        private String userId;
+        private Long id;
+        private Long userId;
         private String nickname;
         private String avatar;
         private String content;
@@ -42,7 +42,7 @@ public class ChatRoomDetailDTO {
 
     @Data
     public static class PinnedMessage {
-        private String id;
+        private Long id;
         private String content;
         private LocalDateTime sendTime;
     }

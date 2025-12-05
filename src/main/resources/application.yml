@@ -52,6 +52,7 @@ mybatis-plus:
   # 指定类型处理器所在的包
   type-handlers-package: com.cyd.xs.config
   configuration:
+    # 开启驼峰命名自动转换（如数据库 is_read → 实体类 isRead）
     map-underscore-to-camel-case: true
     # 开启自动映射结果集
     auto-mapping-behavior: full

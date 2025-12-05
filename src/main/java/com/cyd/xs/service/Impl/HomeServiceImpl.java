@@ -74,7 +74,7 @@ public class HomeServiceImpl implements HomeService {
 
             List<HomeDTO.ContentItem> contentList = contents.stream().map(content -> {
                 HomeDTO.ContentItem item = new HomeDTO.ContentItem();
-                item.setId(String.valueOf(content.getId()));
+                item.setId(content.getId());
                 item.setTitle(content.getTitle());
                 item.setType(content.getType());
                 item.setAuthor(content.getAuthorName());  // 从JOIN查询获取
@@ -119,7 +119,7 @@ public class HomeServiceImpl implements HomeService {
 
             List<RecommendRefreshDTO.ContentItem> contentList = contents.stream().map(content -> {
                 RecommendRefreshDTO.ContentItem item = new RecommendRefreshDTO.ContentItem();
-                item.setId(String.valueOf(content.getId()));
+                item.setId(content.getId());
                 item.setTitle(content.getTitle());
                 item.setType(content.getType());
                 item.setAuthor(content.getAuthorName());
@@ -159,7 +159,7 @@ public class HomeServiceImpl implements HomeService {
 
         List<RecommendRefreshDTO.ContentItem> contentList = contents.stream().map(content -> {
             RecommendRefreshDTO.ContentItem item = new RecommendRefreshDTO.ContentItem();
-            item.setId(String.valueOf(content.getId()));
+            item.setId(content.getId());
             item.setTitle(content.getTitle());
             item.setType(content.getType()); // 使用实际的内容类型
             item.setAuthor(content.getAuthorName());
@@ -212,7 +212,7 @@ public class HomeServiceImpl implements HomeService {
             List<Activity> activities = hotActivityMapper.findHotActivities(3);
             return activities.stream().map(activity -> {
                 HomeDTO.HotActivity hotActivity = new HomeDTO.HotActivity();
-                hotActivity.setId(activity.getId().toString());
+                hotActivity.setId(activity.getId());
                 hotActivity.setTitle(activity.getTitle());
 
                 // 格式化时间：开始时间 - 结束时间

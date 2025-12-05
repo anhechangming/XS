@@ -17,7 +17,7 @@ public class GroupDTO {
 
     @Data
     public static class GroupItem {
-        private String id;
+        private Long id;
         private String name;
         private List<String> tags;
         private Integer memberCount;

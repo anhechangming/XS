@@ -4,13 +4,7 @@ import lombok.Data;
 
 @Data
 public class TopicPostDTO {
-    private String postId;
+    private Long postId;
 
-    public String getPostId() {
-        return postId;
-    }
 
-    public void setPostId(String postId) {
-        this.postId = postId;
-    }
 }

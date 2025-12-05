@@ -18,7 +18,7 @@ public class GroupDetailDTO {
 
     @Data
     public static class GroupInfo {
-        private String id;
+        private Long id;
         private String name;
         private List<String> tags;
         private Integer memberCount;
@@ -57,8 +57,8 @@ public class GroupDetailDTO {
 
     @Data
     public static class DynamicItem {
-        private String id;
-        private String userId;
+        private Long id;
+        private List userId;
         private String nickname;
         private String avatar;
         private String title;
@@ -79,7 +79,7 @@ public class GroupDetailDTO {
 
     @Data
     public static class ResourceItem {
-        private String id;
+        private Long id;
         private String title;
         private String type;
         private String uploader;
@@ -97,7 +97,7 @@ public class GroupDetailDTO {
 
     @Data
     public static class NoticeItem {
-        private String id;
+        private Long id;
         private String title;
         private String content;
         private LocalDateTime publishTime;

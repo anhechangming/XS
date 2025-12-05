@@ -7,7 +7,6 @@ import com.cyd.xs.dto.Topic.*;
 import com.cyd.xs.entity.Topic.ChatRoom.ChatRoomMessage;
 import com.cyd.xs.entity.Topic.Topic;
 import com.cyd.xs.entity.Topic.TopicPost;
-import com.cyd.xs.entity.User.User;
 import com.cyd.xs.mapper.ChatRoom.ChatRoomMapper;
 import com.cyd.xs.mapper.ChatRoom.ChatRoomMessageMapper;
 import com.cyd.xs.mapper.Topic.TopicMapper;
@@ -51,7 +50,7 @@ public class TopicServiceImpl implements TopicService {
 
             List<TopicDTO.TopicItem> topicList = topics.stream().map(topic -> {
                 TopicDTO.TopicItem item = new TopicDTO.TopicItem();
-                item.setId(String.valueOf(topic.getId()));
+                item.setId(topic.getId());
                 item.setTitle(topic.getTitle());
                 item.setLevel("A"); // 默认等级，实际应从数据库获取
                 item.setTags(Arrays.asList(topic.getTag())); // 假设tag字段存储单个标签
@@ -85,7 +84,7 @@ public class TopicServiceImpl implements TopicService {
 
             // 设置话题信息
             TopicDetailDTO.TopicInfo topicInfo = new TopicDetailDTO.TopicInfo();
-            topicInfo.setId(String.valueOf(topic.getId()));
+            topicInfo.setId(topic.getId());
             topicInfo.setTitle(topic.getTitle());
             topicInfo.setLevel("A"); // 默认等级
             topicInfo.setTags(Arrays.asList(topic.getTag()));
@@ -108,7 +107,7 @@ public class TopicServiceImpl implements TopicService {
 
             List<TopicDetailDTO.CommentItem> commentItems = posts.stream().map(post -> {
                 TopicDetailDTO.CommentItem item = new TopicDetailDTO.CommentItem();
-                item.setId(String.valueOf(post.getId()));
+                item.setId(post.getId());
                 item.setUserId(post.getUserId());
                 item.setNickname(post.getUserName());
                 item.setAvatar("https://jobhub.com/avatar/default.png"); // 默认头像
@@ -138,8 +137,8 @@ public class TopicServiceImpl implements TopicService {
         try {
             TopicPost post = new TopicPost();
             post.setId(Long.valueOf(String.valueOf(IDGenerator.generateId())));
-            post.setTopicId(topicId);
-            post.setUserId(userId);
+            post.setTopicId(Long.valueOf(topicId));
+            post.setUserId(Long.valueOf(userId));
             post.setContent(request.getContent());
             post.setCreatedAt(LocalDateTime.now());
 
@@ -152,7 +151,7 @@ public class TopicServiceImpl implements TopicService {
             int result = topicPostMapper.insert(post);
             if (result > 0) {
                 TopicCommentDTO response = new TopicCommentDTO();
-                response.setCommentId(String.valueOf(post.getId()));
+                response.setCommentId(post.getId());
                 response.setStatus("pending"); // 默认待审核
                 response.setSubmitTime(LocalDateTime.now());
                 return response;
@@ -183,7 +182,7 @@ public class TopicServiceImpl implements TopicService {
             topicPostMapper.updateById(comment);
 
             TopicCommentLikeDTO result = new TopicCommentLikeDTO();
-            result.setCommentId(commentId);
+            result.setCommentId(Long.valueOf(commentId));
             result.setLikeCount(newLikeCount);
             result.setIsLike(isLike);
 
@@ -207,7 +206,7 @@ public class TopicServiceImpl implements TopicService {
             result.setPageSize(pageSize);
 
             List<ChatRoomDTO.ChatRoomItem> chatRoomList = Arrays.asList(
-                    createChatRoomItem("21001", "秋招求职聊天室", "秋招求职交流", "ongoing",
+                    createChatRoomItem(21001L, "秋招求职聊天室", "秋招求职交流", "ongoing",
                             1285, "HR Jane",
                             LocalDateTime.of(2025, 5, 20, 19, 0),
                             LocalDateTime.of(2025, 5, 20, 21, 0),
@@ -231,7 +230,7 @@ public class TopicServiceImpl implements TopicService {
 
             // 聊天室基本信息
             ChatRoomDetailDTO.ChatRoomInfo chatRoomInfo = new ChatRoomDetailDTO.ChatRoomInfo();
-            chatRoomInfo.setId(chatRoomId);
+            chatRoomInfo.setId(Long.valueOf(chatRoomId));
             chatRoomInfo.setTitle("秋招求职聊天室");
             chatRoomInfo.setTheme("秋招求职交流");
             chatRoomInfo.setStatus("ongoing");
@@ -245,11 +244,11 @@ public class TopicServiceImpl implements TopicService {
             // 聊天消息
             ChatRoomDetailDTO.MessageList messageList = new ChatRoomDetailDTO.MessageList();
             List<ChatRoomDetailDTO.MessageItem> messages = Arrays.asList(
-                    createMessageItem("22001", "16001", "HR Jane",
+                    createMessageItem(22001L, 1600L, "HR Jane",
                             "https://jobhub.com/avatar/jane.jpg",
                             "大家好，欢迎来到秋招求职聊天室，有问题可以直接提问~",
                             LocalDateTime.of(2025, 5, 20, 19, 0), true),
-                    createMessageItem("22002", userId, "叶同学",
+                    createMessageItem(22002L, Long.valueOf(userId), "叶同学",
                             "https://jobhub.com/avatar/Y.png",
                             "请问HR，简历上的项目经历需要写多少个合适？",
                             LocalDateTime.of(2025, 5, 20, 19, 5), false)
@@ -259,7 +258,7 @@ public class TopicServiceImpl implements TopicService {
 
             // 置顶消息
             ChatRoomDetailDTO.PinnedMessage pinnedMessage = new ChatRoomDetailDTO.PinnedMessage();
-            pinnedMessage.setId("22003");
+            pinnedMessage.setId(Long.valueOf("22003"));
             pinnedMessage.setContent("本次聊天室精华笔记将在结束后1小时内生成，大家可关注消息通知");
             pinnedMessage.setSendTime(LocalDateTime.of(2025, 5, 20, 19, 10));
             result.setPinnedMessage(pinnedMessage);
@@ -277,8 +276,8 @@ public class TopicServiceImpl implements TopicService {
         // 2. 创建消息实体
         ChatRoomMessage message = new ChatRoomMessage();
         message.setId(Long.valueOf(String.valueOf(IDGenerator.generateId())));
-        message.setChatRoomId(chatRoomId);
-        message.setUserId(userId);
+        message.setChatRoomId(Long.valueOf(chatRoomId));
+        message.setUserId(Long.valueOf(userId));
         message.setContent(content);
         message.setSendTime(LocalDateTime.now());
 
@@ -292,7 +291,7 @@ public class TopicServiceImpl implements TopicService {
 
         // 5. 返回DTO
         ChatRoomMessageDTO dto = new ChatRoomMessageDTO();
-        dto.setMessageId(String.valueOf(message.getId()));
+        dto.setMessageId(message.getId());
         dto.setSendTime(message.getSendTime());
         return dto;
     }
@@ -307,7 +306,7 @@ public class TopicServiceImpl implements TopicService {
             // 然后生成精华笔记
 
             EssenceNoteDTO result = new EssenceNoteDTO();
-            result.setNoteId(String.valueOf(IDGenerator.generateId()));
+            result.setNoteId(IDGenerator.generateId());
             result.setNoteUrl("https://jobhub.com/chatroom/essence/" + result.getNoteId() + ".html");
             result.setGenerateTime(LocalDateTime.now());
 
@@ -319,7 +318,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     // 辅助方法
-    private ChatRoomDTO.ChatRoomItem createChatRoomItem(String id, String title, String theme,
+    private ChatRoomDTO.ChatRoomItem createChatRoomItem(Long id, String title, String theme,
                                                         String status, Integer onlineCount, String host,
                                                         LocalDateTime startTime, LocalDateTime endTime, String link) {
         ChatRoomDTO.ChatRoomItem item = new ChatRoomDTO.ChatRoomItem();
@@ -335,7 +334,7 @@ public class TopicServiceImpl implements TopicService {
         return item;
     }
 
-    private ChatRoomDetailDTO.MessageItem createMessageItem(String id, String userId, String nickname,
+    private ChatRoomDetailDTO.MessageItem createMessageItem(Long id, Long userId, String nickname,
                                                             String avatar, String content,
                                                             LocalDateTime sendTime, Boolean isHost) {
         ChatRoomDetailDTO.MessageItem item = new ChatRoomDetailDTO.MessageItem();

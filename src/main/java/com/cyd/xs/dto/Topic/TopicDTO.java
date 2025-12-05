@@ -14,7 +14,7 @@ public class TopicDTO {
 
     @Data
     public static class TopicItem {
-        private String id;
+        private Long id;
         private String title;
         private String level; // A/S等级
         private List<String> tags;
