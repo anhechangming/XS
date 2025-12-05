@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "chat_room_messages")
+@Table(name = "chatroom_messages")
 public class ChatRoomMessage {
     @Id
     private String id;

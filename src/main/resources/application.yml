@@ -1,15 +1,11 @@
 spring:
-  # 字符编码配置
-  http:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
   # 数据库配置
   datasource:
     url: jdbc:mysql://localhost:3306/xs_db?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: root
     password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
       ddl-auto: validate  # 若使用update 模式，自动创建或更新表结构
@@ -18,17 +14,51 @@ spring:
         format_sql: true
   flyway:
     enabled: true
+  # 文件上传配置（单次请求总大小≤20MB，单文件≤5MB）
+  servlet:
+    multipart:
+      max-request-size: 20MB
+      max-file-size: 5MB
 
+# 自定义图片上传配置
+upload:
+  # 本地存储根路径（建议绝对路径，避免部署问题）
+  local:
+    base-path: D:/2025study/25down/SE/XS/file  # Windows示例
+    # base-path: /home/jobhub/upload/  # Linux示例
+  # 图片访问基础URL（前端通过该URL访问图片）
+  access-base-url: http://localhost:8080/upload/  # 本地开发环境
+  # access-base-url: https://jobhub.com/upload/  # 生产环境（域名+静态资源路径）
+  file:
+    # 支持的文件格式（后缀）
+    supported-suffix: "pdf,doc,docx,ppt,pptx"
+    # 单文件最大大小（20MB，与spring配置一致）
+    max-size: 20971520  # 20*1024*1024 字节
 
 jwt:
   secret: LIEHXRVISayW2fZDeuG/alNnbYLMZyQfbUH2nFweb3M=
-  expiration-ms: 900000   # 15m
+  expiration-ms: 86400000   # 15m
   refresh-expiration-ms: 604800000  # 7 days
 
 # 开启SQL日志
 mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.cyd.xs.entity
+  # 指定类型处理器所在的包
+  type-handlers-package: com.cyd.xs.handler
   configuration:
+    # 开启自动映射结果集
+    auto-mapping-behavior: full
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+mybatis:
+  # XML 文件所在目录（根据实际项目结构调整）
+  mapper-locations: classpath:mybatis/*.xml
+  # 实体类别名包（避免 XML 中写全类名）
+  type-aliases-package: com.cyd.xs.entity
+  configuration:
+    # 开启驼峰命名自动转换（如数据库 is_read → 实体类 isRead）
+    map-underscore-to-camel-case: true
 
 logging:
   level:

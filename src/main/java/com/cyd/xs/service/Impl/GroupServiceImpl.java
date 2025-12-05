@@ -321,7 +321,7 @@ public class GroupServiceImpl implements GroupService {
             }
 
             GroupDynamic dynamic = new GroupDynamic();
-            dynamic.setId(IDGenerator.generateId());
+            dynamic.setId(Long.valueOf(IDGenerator.generateId()));
             dynamic.setGroupId(Long.valueOf(groupId));
             dynamic.setUserId(Long.valueOf(userId));
             dynamic.setNickname("用户" + userId.substring(0, Math.min(userId.length(), 6))); // 防止索引越界
@@ -375,7 +375,7 @@ public class GroupServiceImpl implements GroupService {
             }
 
             GroupResource resource = new GroupResource();
-            resource.setId(IDGenerator.generateId());
+            resource.setId(Long.valueOf(IDGenerator.generateId()));
             resource.setGroupId(Long.valueOf(groupId)); // 转换为Long
             resource.setTitle(request.getTitle());
             resource.setDescription(request.getDescription());

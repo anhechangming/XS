@@ -34,6 +34,7 @@ public class TopicServiceImpl implements TopicService {
     private final ChatRoomMapper chatRoomMapper;
     private final ChatRoomMessageMapper chatRoomMessageMapper;
 
+
     @Override
     public TopicDTO getTopicList(String tag, String level, String sort, Integer pageNum, Integer pageSize) {
         log.info("获取话题列表: tag={}, level={}, sort={}, pageNum={}, pageSize={}",
@@ -136,7 +137,7 @@ public class TopicServiceImpl implements TopicService {
 
         try {
             TopicPost post = new TopicPost();
-            post.setId(IDGenerator.generateId());
+            post.setId(String.valueOf(IDGenerator.generateId()));
             post.setTopicId(topicId);
             post.setUserId(userId);
             post.setContent(request.getContent());
@@ -275,7 +276,7 @@ public class TopicServiceImpl implements TopicService {
         // 1. 验证用户权限
         // 2. 创建消息实体
         ChatRoomMessage message = new ChatRoomMessage();
-        message.setId(IDGenerator.generateId());
+        message.setId(String.valueOf(IDGenerator.generateId()));
         message.setChatRoomId(chatRoomId);
         message.setUserId(userId);
         message.setContent(content);
@@ -306,7 +307,7 @@ public class TopicServiceImpl implements TopicService {
             // 然后生成精华笔记
 
             EssenceNoteDTO result = new EssenceNoteDTO();
-            result.setNoteId(IDGenerator.generateId());
+            result.setNoteId(String.valueOf(IDGenerator.generateId()));
             result.setNoteUrl("https://jobhub.com/chatroom/essence/" + result.getNoteId() + ".html");
             result.setGenerateTime(LocalDateTime.now());
 

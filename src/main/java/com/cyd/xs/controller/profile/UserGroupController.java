@@ -4,7 +4,7 @@ import com.cyd.xs.Response.Result;
 import com.cyd.xs.dto.profile.VO.GroupWithUserRoleVO;
 import com.cyd.xs.service.UserGroupService;
 import org.springframework.web.bind.annotation.*;
-import com.cyd.xs.entity.User.Group;
+import com.cyd.xs.entity.Group.Group;
 
 import java.util.List;
 
@@ -66,6 +66,7 @@ public class UserGroupController {
             @RequestParam(defaultValue = "10") Integer pageSize
     ) {
         List<Group> groupList = userGroupService.listDiscoverGroups(pageNum, pageSize);
+
         return Result.success("获取更多小组成功", groupList);
     }
 }

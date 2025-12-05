@@ -1,5 +1,6 @@
 package com.cyd.xs.mapper.groups;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.cyd.xs.entity.Group.GroupDynamic;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -9,7 +10,7 @@ import org.apache.ibatis.annotations.Select;
 import java.util.List;
 
 @Mapper
-public interface GroupDynamicMapper {
+public interface GroupDynamicMapper extends BaseMapper<GroupDynamic> {
 
     @Insert("INSERT INTO group_dynamics (id, group_id, user_id, nickname, avatar, title, content, image_urls, tags, like_count, comment_count, publish_time, status) " +
             "VALUES (#{id}, #{groupId}, #{userId}, #{nickname}, #{avatar}, #{title}, #{content}, #{imageUrls}, #{tags}, #{likeCount}, #{commentCount}, #{publishTime}, #{status})")

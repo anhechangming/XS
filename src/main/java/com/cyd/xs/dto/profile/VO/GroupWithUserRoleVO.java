@@ -1,6 +1,7 @@
 package com.cyd.xs.dto.profile.VO;
 
-import com.cyd.xs.entity.User.Group;
+
+import com.cyd.xs.entity.Group.Group;
 import lombok.Data;
 
 import java.time.LocalDateTime;

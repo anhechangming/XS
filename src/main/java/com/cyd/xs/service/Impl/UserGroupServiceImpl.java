@@ -5,10 +5,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cyd.xs.Utils.SecurityUtils;
 
 import com.cyd.xs.dto.profile.VO.GroupWithUserRoleVO;
-import com.cyd.xs.entity.User.Group;
+
+import com.cyd.xs.entity.Group.Group;
 import com.cyd.xs.entity.User.UserGroup;
-import com.cyd.xs.mapper.GroupMapper;
+
 import com.cyd.xs.mapper.UserGroupMapper;
+import com.cyd.xs.mapper.groups.GroupMapper;
 import com.cyd.xs.service.UserGroupService;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +39,7 @@ public class UserGroupServiceImpl extends ServiceImpl<UserGroupMapper, UserGroup
     public boolean joinGroup(Long groupId) {
         Long userId = SecurityUtils.getUserId();
         // 1. 校验小组是否有效
-        Group group = groupMapper.selectValidGroupById(groupId);
+        Group group = groupMapper.selectById(groupId);
         if (group == null) {
             throw new RuntimeException("小组不存在或已失效");
         }

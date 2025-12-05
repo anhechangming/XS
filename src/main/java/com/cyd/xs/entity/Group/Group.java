@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.core.JsonParser;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.Data;
@@ -17,6 +18,7 @@ import java.util.List;
 @Table(name = "`groups`")
 public class Group {
     @TableId(type = IdType.AUTO)
+    @Id
     private Long id;                // 小组ID
     private String name;            // 小组名称
     private String intro;           // 小组简介

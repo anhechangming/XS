@@ -1,12 +1,13 @@
 package com.cyd.xs.mapper.groups;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.cyd.xs.entity.Group.Group;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
 @Mapper
-public interface GroupMapper {
+public interface GroupMapper extends BaseMapper<Group> {
 
     @Insert("INSERT INTO groups (name, intro, avatar, activity_type, creator_id, status, created_at) " +
             "VALUES (#{name}, #{intro}, #{avatar}, #{activityType}, #{creatorId}, #{status}, #{createdAt})")
@@ -51,4 +52,15 @@ public interface GroupMapper {
 
     @Update("UPDATE groups SET member_count = member_count + #{increment} WHERE id = #{groupId}")
     int updateMemberCount(@Param("groupId") String groupId, @Param("increment") int increment);
+
+    @Select("SELECT * FROM `groups` WHERE id = #{groupId} AND status = 'normal'")
+    Group selectValidGroupById(@Param("groupId") Long groupId);
+
+    // 新增：查询"发现更多小组"列表（状态正常的小组，分页）
+    @Select("SELECT * FROM `groups` WHERE status = 'normal' LIMIT #{pageSize} OFFSET #{offset}")
+    List<Group> listValidGroups(@Param("pageSize") Integer pageSize, @Param("offset") Integer offset);
+
+    // 新增：统计有效小组总数（用于分页）
+    @Select("SELECT COUNT(*) FROM `groups` WHERE status = 'normal'")
+    Integer countValidGroups();
 }

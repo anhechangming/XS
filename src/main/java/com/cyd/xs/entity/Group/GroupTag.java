@@ -12,6 +12,7 @@ import lombok.Data;
 @Table(name = "group_tag")
 public class GroupTag {
     @TableId(type = IdType.AUTO)
+    @Id
     private Long id;
     private Long groupId;
     private String tag;

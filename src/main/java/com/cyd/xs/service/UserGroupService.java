@@ -2,7 +2,7 @@ package com.cyd.xs.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.cyd.xs.dto.profile.VO.GroupWithUserRoleVO;
-import com.cyd.xs.entity.User.Group;
+import com.cyd.xs.entity.Group.Group;
 import com.cyd.xs.entity.User.UserGroup;
 
 import java.util.List;
