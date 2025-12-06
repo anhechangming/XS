@@ -3,6 +3,7 @@ package com.cyd.xs.service;
 import com.cyd.xs.dto.ChatRoom.ChatRoomDTO;
 import com.cyd.xs.dto.ChatRoom.ChatRoomDetailDTO;
 import com.cyd.xs.dto.ChatRoom.ChatRoomMessageDTO;
+import com.cyd.xs.dto.ChatRoom.EssenceNoteDTO;
 import com.cyd.xs.dto.Topic.*;
 
 public interface TopicService {

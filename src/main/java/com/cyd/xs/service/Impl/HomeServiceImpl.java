@@ -28,7 +28,7 @@ public class HomeServiceImpl implements HomeService {
     private final UserContentMapper userContentMapper;
 
     @Override
-    public HomeDTO getHomeData(String userId) {
+    public HomeDTO getHomeData(Long userId) {
         log.info("用户 {} 获取首页数据", userId);
 
         HomeDTO homeDTO = new HomeDTO();
@@ -143,6 +143,8 @@ public class HomeServiceImpl implements HomeService {
             throw new RuntimeException("刷新推荐内容失败");
         }
     }
+
+
     private RecommendRefreshDTO refreshRecommendByIdentity(String userIdentity, Integer pageNum, Integer pageSize) {
         int offset = (pageNum - 1) * pageSize;
         List<UserContent> contents;
@@ -176,7 +178,7 @@ public class HomeServiceImpl implements HomeService {
         return result;
     }
 
-    private String getUserIdentity(String userId) {
+    private String getUserIdentity(Long userId) {
         try {
             String userrole = userMapper.getUserRole(Long.valueOf(userId));
             if (userrole != null && !userrole.isEmpty()) {  

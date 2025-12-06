@@ -5,6 +5,7 @@ import com.cyd.xs.dto.Home.HomeDTO;
 import com.cyd.xs.dto.Home.RecommendRefreshDTO;
 import com.cyd.xs.service.HomeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/home")
 @RequiredArgsConstructor
@@ -28,12 +30,16 @@ public class HomeController {
     public ResponseEntity<Result<?>> getHomeData(Authentication authentication) {
         try {
             System.out.println("开始获取首页数据...");
-            Long userId = null;
-            if (authentication != null && authentication.isAuthenticated()) {
-                userId = Long.parseLong(authentication.getName());
-            }
+
+            // 获取用户ID，允许未登录用户访问
+            Long userId = getUserIdFromAuth(authentication);
+
+//            Long userId = null;
+//            if (authentication != null && authentication.isAuthenticated()) {
+//                userId = Long.parseLong(authentication.getName());
+//            }
             System.out.println("用户ID: " + userId);
-            HomeDTO homeDTO = homeService.getHomeData(String.valueOf(userId));
+            HomeDTO homeDTO = homeService.getHomeData(userId);
             return ResponseEntity.ok(Result.success("获取成功", homeDTO));
         } catch (Exception e) {
             System.err.println("获取首页数据失败: " + e.getMessage());
@@ -54,8 +60,12 @@ public class HomeController {
             @RequestParam(defaultValue = "5") Integer pageSize,
             Authentication authentication) {
         try {
-            String userId = getUserIdFromAuthentication(authentication);
-            RecommendRefreshDTO result = homeService.refreshRecommend(Long.valueOf(userId), pageNum, pageSize);
+
+            // 获取用户ID，允许未登录用户访问
+            Long userId = getUserIdFromAuth(authentication);
+
+//            String userId = getUserIdFromAuthentication(authentication);
+            RecommendRefreshDTO result = homeService.refreshRecommend(userId, pageNum, pageSize);
             return ResponseEntity.ok(Result.success("推荐内容刷新成功", result));
         } catch (Exception e) {
             System.err.println("推荐内容刷新失败: " + e.getMessage());
@@ -79,6 +89,19 @@ public class HomeController {
             // 根据业务需求，可以返回一个默认的匿名用户ID
             return "anonymous"; // 或者返回 "guest"，根据业务调整
         }
+    }
+
+    // 辅助方法：获取用户ID（允许未登录）
+    private Long getUserIdFromAuth(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            try {
+                return Long.parseLong(authentication.getName());
+            } catch (NumberFormatException e) {
+                log.warn("用户ID格式错误: {}", authentication.getName());
+                return null;
+            }
+        }
+        return null; // 未登录返回null
     }
 
 

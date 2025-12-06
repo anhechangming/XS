@@ -1,6 +1,7 @@
 package com.cyd.xs.controller.content;
 
 import com.cyd.xs.Utils.ResultVO;
+import com.cyd.xs.config.CustomUserPrincipal;
 import com.cyd.xs.dto.content.DTO.QuickPublishDTO;
 import com.cyd.xs.dto.content.VO.QuickPublishVO;
 import com.cyd.xs.service.QuickPublishService;
@@ -39,12 +40,32 @@ public class QuickPublishController {
         }
 
         // 2. 获取登录用户ID（Principal是String类型的用户ID）
-        String userIdStr = (String) authentication.getPrincipal();
+        //String userIdStr = (String) authentication.getPrincipal();
         Long userId;
+//        try {
+//            userId = Long.parseLong(userIdStr);
+//        } catch (NumberFormatException e) {
+//            return ResultVO.error(400, "用户ID格式错误");
+//        }
+
         try {
-            userId = Long.parseLong(userIdStr);
-        } catch (NumberFormatException e) {
-            return ResultVO.error(400, "用户ID格式错误");
+            if (authentication.getPrincipal() instanceof CustomUserPrincipal) {
+                // 如果Principal是CustomUserPrincipal对象
+                CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+                userId = principal.getUserId();
+            } else if (authentication.getPrincipal() instanceof String) {
+                // 如果Principal是String（可能是用户名字符串）
+                // 这里需要根据实际情况调整，可能需要查询数据库获取用户ID
+                String username = (String) authentication.getPrincipal();
+                // 调用用户服务获取用户ID
+                // userId = userService.getUserIdByUsername(username);
+                // 暂时先返回错误
+                return ResultVO.error(400, "需要用户ID，但获取到的是用户名");
+            } else {
+                return ResultVO.error(400, "无法识别的认证主体类型");
+            }
+        } catch (Exception e) {
+            return ResultVO.error(400, "用户ID获取失败：" + e.getMessage());
         }
 
         try {

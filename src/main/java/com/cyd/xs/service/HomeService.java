@@ -2,16 +2,13 @@ package com.cyd.xs.service;
 
 import com.cyd.xs.dto.Home.HomeDTO;
 import com.cyd.xs.dto.Home.RecommendRefreshDTO;
-import com.cyd.xs.dto.Search.SearchDTO;
-
-import java.util.List;
 
 public interface HomeService {
 
     /**
      * 获取首页数据
      */
-    HomeDTO getHomeData(String userId);
+    HomeDTO getHomeData(Long userId);
 
     /**
      * 推荐内容换一批（新版本，带分页）

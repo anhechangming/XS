@@ -4,24 +4,23 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "chatroom_messages")
-public class ChatRoomMessage {
+@Table(name = "essence_notes")
+public class EssenceNote {
     @Id
     private Long id;
 
     private Long chatRoomId;
     private Long userId;
-
-
-    private String neckName;
-
-    private String avatar;
+    private String title;
     private String content;
-    private LocalDateTime sendTime;
+    private String summary;
+    private Integer messageCount;
+    private LocalDateTime generateTime;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

@@ -6,6 +6,7 @@ import com.cyd.xs.config.CustomUserPrincipal;
 import com.cyd.xs.dto.ChatRoom.ChatRoomDTO;
 import com.cyd.xs.dto.ChatRoom.ChatRoomDetailDTO;
 import com.cyd.xs.dto.ChatRoom.ChatRoomMessageDTO;
+import com.cyd.xs.dto.ChatRoom.EssenceNoteDTO;
 import com.cyd.xs.dto.Topic.*;
 import com.cyd.xs.service.TopicService;
 import lombok.extern.slf4j.Slf4j;
@@ -60,8 +61,27 @@ public class TopicController {
             @RequestParam(defaultValue = "10") Integer pageSize,
             Authentication authentication) {
         try {
-            // 获取用户ID，允许未登录用户访问
+            // 允许未登录用户查看详情
             Long userId = getUserIdFromAuth(authentication);
+
+            // 方法1：使用 SecurityUtils.getUserId()
+            userId = SecurityUtils.getUserId();
+
+            // 方法2：或者直接从 Authentication 中获取（更直接）
+            if (authentication != null && authentication.isAuthenticated()) {
+                Object principal = authentication.getPrincipal();
+                if (principal instanceof CustomUserPrincipal) {
+                    userId = ((CustomUserPrincipal) principal).getUserId();
+                    log.debug("从CustomUserPrincipal获取userId: {}", userId);
+                } else {
+                    log.error("Principal类型错误: {}", principal.getClass().getName());
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Result.error("用户信息异常"));
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Result.error("请先登录"));
+            }
 
             TopicDetailDTO result = topicService.getTopicDetail(id, pageNum, pageSize, userId);
             return ResponseEntity.ok(Result.success("获取成功", result));
@@ -89,6 +109,7 @@ public class TopicController {
             if (authentication != null && authentication.isAuthenticated()) {
                 Object principal = authentication.getPrincipal();
                 if (principal instanceof CustomUserPrincipal) {
+
                     userId = ((CustomUserPrincipal) principal).getUserId();
                     log.debug("从CustomUserPrincipal获取userId: {}", userId);
                 } else {
@@ -117,7 +138,7 @@ public class TopicController {
     @PutMapping("/comment/{id}/like")
     public ResponseEntity<Result<?>> likeTopicComment(
             @PathVariable Long id,
-            @RequestParam Boolean isLike,
+            @RequestParam(defaultValue = "true") Boolean isLike,
             Authentication authentication) {
         try {
 

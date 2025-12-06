@@ -56,20 +56,36 @@ CREATE TABLE `topic_posts` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 创建评论点赞记录表
+CREATE TABLE `topic_post_like` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `post_id` bigint NOT NULL COMMENT '评论ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `created_at` datetime NOT NULL COMMENT '点赞时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_post_user` (`post_id`, `user_id`),  -- 防止重复点赞
+  KEY `idx_post_id` (`post_id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='评论点赞记录表';
 
 
 -- ----------------------------
 -- Table structure for chatroom_messages
 -- ----------------------------
 DROP TABLE IF EXISTS `chatroom_messages`;
-CREATE TABLE `chatroom_messages`  (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '消息ID',
-  `chatroom_id` bigint NOT NULL COMMENT '聊天室ID',
-  `user_id` bigint NOT NULL COMMENT '发送者用户ID',
-  `content` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '消息内容',
-  `send_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+-- 创建聊天室消息表
+CREATE TABLE chatroom_messages (
+    id BIGINT PRIMARY KEY COMMENT '消息ID',
+    chat_room_id BIGINT NOT NULL COMMENT '聊天室ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    nick_name VARCHAR(100) COMMENT '用户昵称',
+    avatar VARCHAR(500) COMMENT '用户头像URL',
+    content TEXT COMMENT '消息内容',
+    send_time DATETIME NOT NULL COMMENT '发送时间',
+    INDEX idx_chat_room_id (chat_room_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_send_time (send_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天室消息表';
 
 -- ----------------------------
 -- Records of chatroom_messages
@@ -95,6 +111,23 @@ CREATE TABLE `chatroom_roles` (
 -- ----------------------------
 BEGIN;
 COMMIT;
+
+-- 创建精华笔记表
+CREATE TABLE essence_notes (
+    id BIGINT PRIMARY KEY COMMENT '笔记ID',
+    chat_room_id BIGINT NOT NULL COMMENT '聊天室ID',
+    user_id BIGINT NOT NULL COMMENT '生成者用户ID',
+    title VARCHAR(200) COMMENT '笔记标题',
+    content TEXT COMMENT '笔记内容（HTML/纯文本）',
+    summary TEXT COMMENT '摘要',
+    message_count INT COMMENT '包含消息数量',
+    generate_time DATETIME NOT NULL COMMENT '生成时间',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_chat_room_id (chat_room_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_generate_time (generate_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='精华笔记表';
 
 -- ----------------------------
 -- Table structure for chatrooms

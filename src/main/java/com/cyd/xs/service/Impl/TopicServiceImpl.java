@@ -3,26 +3,35 @@ package com.cyd.xs.service.Impl;
 import com.cyd.xs.dto.ChatRoom.ChatRoomDTO;
 import com.cyd.xs.dto.ChatRoom.ChatRoomDetailDTO;
 import com.cyd.xs.dto.ChatRoom.ChatRoomMessageDTO;
+import com.cyd.xs.dto.ChatRoom.EssenceNoteDTO;
 import com.cyd.xs.dto.Topic.*;
+import com.cyd.xs.entity.Topic.ChatRoom.ChatRoom;
 import com.cyd.xs.entity.Topic.ChatRoom.ChatRoomMessage;
+import com.cyd.xs.entity.Topic.ChatRoom.EssenceNote;
 import com.cyd.xs.entity.Topic.Topic;
 import com.cyd.xs.entity.Topic.TopicPost;
+import com.cyd.xs.entity.Topic.TopicPostLike;
 import com.cyd.xs.entity.User.User;
 import com.cyd.xs.mapper.ChatRoom.ChatRoomMapper;
 import com.cyd.xs.mapper.ChatRoom.ChatRoomMessageMapper;
+import com.cyd.xs.mapper.ChatRoom.EssenceNoteMapper;
 import com.cyd.xs.mapper.Topic.TopicMapper;
 import com.cyd.xs.mapper.Topic.TopicPostMapper;
 import com.cyd.xs.mapper.UserMapper;
 import com.cyd.xs.service.TopicService;
 import com.cyd.xs.util.IDGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,6 +45,8 @@ public class TopicServiceImpl implements TopicService {
     private final ChatRoomMapper chatRoomMapper;
     private final ChatRoomMessageMapper chatRoomMessageMapper;
     private final UserMapper userMapper;
+    private final ObjectMapper objectMapper;
+    private final EssenceNoteMapper essenceNoteMapper;
 
 
     @Override
@@ -91,7 +102,7 @@ public class TopicServiceImpl implements TopicService {
             topicInfo.setId(topic.getId());
             topicInfo.setTitle(topic.getTitle());
             topicInfo.setLevel("A"); // 默认等级
-            topicInfo.setTags(Arrays.asList(topic.getTag()));
+            topicInfo.setTags(Collections.singletonList(topic.getTag()));
             topicInfo.setParticipantCount(topic.getParticipantCount());
             topicInfo.setInteractionCount(topic.getInteractiveCount());
             topicInfo.setLatestReplyTime(topic.getLatestReplyTime());
@@ -141,27 +152,43 @@ public class TopicServiceImpl implements TopicService {
         try {
 
             // 获取用户信息
-
             User user = userMapper.findById(userId);
             if (user == null) {
                 throw new RuntimeException("用户不存在");
             }
 
             TopicPost post = new TopicPost();
-            post.setId(Long.valueOf(String.valueOf(IDGenerator.generateId())));
+            post.setId((IDGenerator.generateId()));
             post.setTopicId(topicId);
             post.setUserId(userId);
+
             post.setContent(request.getContent());
             post.setCreatedAt(LocalDateTime.now());
-
-            // 处理图片
+            // 设置用户名
+            if (user.getUsername() != null) {
+                // 根据你的User实体字段名调整
+                post.setUserName(user.getUsername());
+            } else if (user.getDisplayName() != null) {
+                post.setUserName(user.getDisplayName());
+            }
+            // 处理图片（如果表有images字段）
             if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
-                // 这里需要将List转换为JSON字符串存储
-                // post.setImages(objectMapper.writeValueAsString(request.getImageUrls()));
+                try {
+                    // 将图片URL列表转换为JSON字符串
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String imagesJson = objectMapper.writeValueAsString(request.getImageUrls());
+                    // post.setImages(imagesJson); // 如果实体有images字段
+                } catch (JsonProcessingException e) {
+                    log.warn("图片URL序列化失败: {}", e.getMessage());
+                }
             }
 
             int result = topicPostMapper.insert(post);
             if (result > 0) {
+                // 更新话题的互动次数和最新回复时间
+                topicMapper.incrementInteractiveCount(topicId);
+                topicMapper.updateLatestReplyTime(topicId, LocalDateTime.now());
+
                 TopicCommentDTO response = new TopicCommentDTO();
                 response.setCommentId(post.getId());
                 response.setStatus("pending"); // 默认待审核
@@ -182,34 +209,55 @@ public class TopicServiceImpl implements TopicService {
         log.info("用户 {} {}评论 {}", userId, isLike ? "点赞" : "取消点赞", commentId);
 
         try {
-
-            // 获取用户信息
-
-            User user = userMapper.findById(userId);
-            if (user == null) {
-                throw new RuntimeException("用户不存在");
-            }
-
-            // 这里应该查询评论并更新点赞数
+            // 检查评论是否存在
             TopicPost comment = topicPostMapper.selectById(commentId);
             if (comment == null) {
                 throw new RuntimeException("评论不存在");
             }
 
-            int newLikeCount = isLike ?
-                    comment.getLikeCount() + 1 : Math.max(0, comment.getLikeCount() - 1);
-            comment.setLikeCount(newLikeCount);
+            // 检查点赞记录
+            boolean hasLiked = topicPostMapper.exists(commentId, userId);
+
+            if (isLike) {
+                // 点赞
+                if (hasLiked) {
+                    throw new RuntimeException("已点过赞");
+                }
+
+                // 插入点赞记录
+                TopicPostLike like = new TopicPostLike();
+                like.setPostId(commentId);
+                like.setUserId(userId);
+                like.setCreatedAt(LocalDateTime.now());
+                topicPostMapper.insert(like);
+
+                // 更新评论点赞数
+                comment.setLikeCount(comment.getLikeCount() + 1);
+            } else {
+                // 取消点赞
+                if (!hasLiked) {
+                    throw new RuntimeException("未点赞，无法取消");
+                }
+
+                // 删除点赞记录
+                topicPostMapper.deleteByPostAndUser(commentId, userId);
+
+                // 更新评论点赞数
+                comment.setLikeCount(Math.max(0, comment.getLikeCount() - 1));
+            }
+
+            // 更新评论
             topicPostMapper.updateById(comment);
 
             TopicCommentLikeDTO result = new TopicCommentLikeDTO();
-            result.setCommentId(Long.valueOf(commentId));
-            result.setLikeCount(newLikeCount);
+            result.setCommentId(commentId);
+            result.setLikeCount(comment.getLikeCount());
             result.setIsLike(isLike);
 
             return result;
         } catch (Exception e) {
             log.error("点赞操作失败: {}", e.getMessage(), e);
-            throw new RuntimeException("点赞操作失败");
+            throw new RuntimeException("点赞操作失败: " + e.getMessage());
         }
     }
 
@@ -292,28 +340,56 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public ChatRoomMessageDTO sendChatRoomMessage(Long chatRoomId, Long userId, String content) {
-        // 1. 验证用户权限
-        // 2. 创建消息实体
-        ChatRoomMessage message = new ChatRoomMessage();
-        message.setId(Long.valueOf(String.valueOf(IDGenerator.generateId())));
-        message.setChatRoomId(Long.valueOf(chatRoomId));
-        message.setUserId(Long.valueOf(userId));
-        message.setContent(content);
-        message.setSendTime(LocalDateTime.now());
 
-        // 3. 从用户表获取用户信息
-         //User user = userService.getUserById(userId);
-         //message.setNickname(user.getNickname());
-         //message.setAvatar(user.getAvatarUrl());
 
-        // 4. 保存消息
-        chatRoomMessageMapper.insert(message);
+        try {
+            // 1. 验证聊天室是否存在
 
-        // 5. 返回DTO
-        ChatRoomMessageDTO dto = new ChatRoomMessageDTO();
-        dto.setMessageId(message.getId());
-        dto.setSendTime(message.getSendTime());
-        return dto;
+            ChatRoom chatRoom = chatRoomMapper.findById(chatRoomId);
+            if (chatRoom == null) {
+                throw new RuntimeException("聊天室不存在");
+            }
+
+
+            // 2. 获取用户信息
+            User user = userMapper.findById(userId);
+            if (user == null) {
+                throw new RuntimeException("用户不存在");
+            }
+
+
+            // 3. 创建消息实体
+            ChatRoomMessage message = new ChatRoomMessage();
+            message.setId(Long.valueOf(String.valueOf(IDGenerator.generateId())));
+            message.setChatRoomId(chatRoomId);
+            message.setUserId(userId);
+            message.setContent(content);
+            message.setSendTime(LocalDateTime.now());
+
+            // 设置用户信息
+            message.setNeckName(user.getDisplayName() != null ? user.getDisplayName() : user.getUsername());
+            message.setAvatar(user.getAvatarUrl());
+
+            // 5. 保存消息
+            int result = chatRoomMessageMapper.insert(message);
+            if (result == 0) {
+                throw new RuntimeException("消息保存失败");
+            }
+
+//            // 4. 保存消息
+//            chatRoomMessageMapper.insert(message);
+
+            // 5. 返回DTO
+            ChatRoomMessageDTO dto = new ChatRoomMessageDTO();
+            dto.setMessageId(message.getId());
+            dto.setSendTime(message.getSendTime());
+            return dto;
+        }catch (Exception e) {
+            log.error("发送聊天室消息失败: chatRoomId={}, userId={}, content={}",
+                    chatRoomId, userId, content, e);
+            throw new RuntimeException("发送消息失败: " + e.getMessage());
+        }
+
     }
 
     @Override
@@ -322,18 +398,87 @@ public class TopicServiceImpl implements TopicService {
         log.info("用户 {} 为聊天室 {} 生成精华笔记", userId, chatRoomId);
 
         try {
-            // 这里应该检查用户权限（主持人/管理员）
-            // 然后生成精华笔记
+            // 1. 获取用户信息
+            User user = userMapper.findById(userId);
+            if (user == null) {
+                throw new RuntimeException("用户不存在");
+            }
 
-            EssenceNoteDTO result = new EssenceNoteDTO();
-            result.setNoteId(IDGenerator.generateId());
-            result.setNoteUrl("https://jobhub.com/chatroom/essence/" + result.getNoteId() + ".html");
-            result.setGenerateTime(LocalDateTime.now());
+            // 2. 获取聊天室最近的消息
+            List<ChatRoomMessage> recentMessages = chatRoomMessageMapper.findRecentMessages(chatRoomId);
 
-            return result;
+            if (recentMessages == null || recentMessages.isEmpty()) {
+                throw new RuntimeException("该聊天室没有消息，无法生成精华笔记");
+            }
+
+            // 限制消息数量，避免内容过长
+            int maxMessages = Math.min(recentMessages.size(), 50);
+            List<ChatRoomMessage> selectedMessages = recentMessages.subList(0, maxMessages);
+
+            // 3. 生成简洁的内容
+            String title = String.format("%s - 精华笔记", getChatRoomTitle(chatRoomId));
+            String summary = String.format("包含 %d 条消息，由 %s 生成",
+                    selectedMessages.size(),
+                    user.getDisplayName() != null ? user.getDisplayName() : user.getUsername());
+
+            // 4. 生成纯文本内容（避免 HTML 太长的问题）
+            StringBuilder content = new StringBuilder();
+            content.append("=== ").append(title).append(" ===\n\n");
+            content.append("生成时间: ").append(LocalDateTime.now()).append("\n");
+            content.append("生成者: ").append(user.getDisplayName() != null ? user.getDisplayName() : user.getUsername()).append("\n");
+            content.append("消息数量: ").append(selectedMessages.size()).append(" 条\n\n");
+            content.append("------------------------\n\n");
+
+            // 按时间顺序排序
+            selectedMessages.sort(Comparator.comparing(ChatRoomMessage::getSendTime));
+
+            for (ChatRoomMessage message : selectedMessages) {
+                content.append("[")
+                        .append(message.getSendTime().format(DateTimeFormatter.ofPattern("HH:mm")))
+                        .append("] ")
+                        .append(message.getNeckName())
+                        .append(": ")
+                        .append(message.getContent())
+                        .append("\n");
+            }
+
+            content.append("\n------------------------\n");
+            content.append("笔记生成完成\n");
+
+            // 5. 保存精华笔记
+            EssenceNote essenceNote = new EssenceNote();
+            Long noteId = IDGenerator.generateId();
+            essenceNote.setId(noteId);
+            essenceNote.setChatRoomId(chatRoomId);
+            essenceNote.setUserId(userId);
+            essenceNote.setTitle(title);
+            essenceNote.setSummary(summary);
+            essenceNote.setContent(content.toString());
+            essenceNote.setMessageCount(selectedMessages.size());
+            essenceNote.setGenerateTime(LocalDateTime.now());
+            essenceNote.setCreatedAt(LocalDateTime.now());
+            essenceNote.setUpdatedAt(LocalDateTime.now());
+
+            // 保存到数据库
+            int result = essenceNoteMapper.insert(essenceNote);
+            if (result == 0) {
+                throw new RuntimeException("保存精华笔记失败");
+            }
+
+            log.info("精华笔记生成成功，ID: {}, 包含消息: {} 条", noteId, selectedMessages.size());
+
+            // 6. 返回DTO
+            EssenceNoteDTO dto = new EssenceNoteDTO();
+            dto.setNoteId(noteId);
+            dto.setNoteUrl(String.format("/api/v1/essence-notes/%d", noteId));
+            dto.setGenerateTime(essenceNote.getGenerateTime());
+
+            return dto;
+
         } catch (Exception e) {
-            log.error("生成精华笔记失败: {}", e.getMessage(), e);
-            throw new RuntimeException("生成精华笔记失败");
+            log.error("生成精华笔记失败: chatRoomId={}, userId={}, error={}",
+                    chatRoomId, userId, e.getMessage(), e);
+            throw new RuntimeException("生成精华笔记失败: " + e.getMessage());
         }
     }
 
@@ -366,6 +511,138 @@ public class TopicServiceImpl implements TopicService {
         item.setSendTime(sendTime);
         item.setIsHost(isHost);
         return item;
+    }
+
+    // 辅助方法：获取最近的消息
+    private List<ChatRoomMessage> getRecentChatMessages(Long chatRoomId, LocalDateTime startTime) {
+        // 这里可以使用自定义的Mapper方法，如果没有可以添加
+        // 假设有方法：findMessagesByTimeRange
+        return chatRoomMessageMapper.findMessagesByTimeRange(chatRoomId, startTime);
+    }
+
+    // 辅助方法：验证权限
+    private boolean hasEssenceNotePermission(Long chatRoomId, Long userId) {
+        // 方案1：检查用户是否是主持人
+        ChatRoom chatRoom = chatRoomMapper.findById(chatRoomId);
+        if (chatRoom != null && chatRoom.getHostId() != null && chatRoom.getHostId().equals(userId)) {
+            return true;
+        }
+
+        // 方案2：检查用户是否有特殊角色（从chatroom_roles表查询）
+        try {
+            // 假设有 ChatRoomRolesMapper
+            // ChatRoomRoles role = chatRoomRolesMapper.findByChatRoomAndUser(chatRoomId, userId);
+            // return role != null && ("HOST".equals(role.getRole()) || "ADMIN".equals(role.getRole()));
+        } catch (Exception e) {
+            log.warn("检查用户权限失败: {}", e.getMessage());
+        }
+
+        // 方案3：检查用户是否是管理员（从users表查询）
+        User user = userMapper.findById(userId);
+        if (user != null && "ADMIN".equals(user.getRole())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // 辅助方法：获取聊天室标题
+    private String getChatRoomTitle(Long chatRoomId) {
+        try {
+            ChatRoom chatRoom = chatRoomMapper.findById(chatRoomId);
+            if (chatRoom != null && chatRoom.getTitle() != null) {
+                return chatRoom.getTitle();
+            }
+        } catch (Exception e) {
+            log.warn("获取聊天室标题失败: {}", e.getMessage());
+        }
+        return "聊天室 " + chatRoomId;
+    }
+
+    // 辅助方法：生成笔记摘要
+    private String generateNoteSummary(List<ChatRoomMessage> messages) {
+        if (messages.isEmpty()) {
+            return "暂无内容摘要";
+        }
+
+        // 提取前3条有代表性的消息作为摘要
+        StringBuilder summary = new StringBuilder();
+        int count = Math.min(3, messages.size());
+
+        for (int i = 0; i < count; i++) {
+            ChatRoomMessage msg = messages.get(i);
+            String truncatedContent = msg.getContent().length() > 50 ?
+                    msg.getContent().substring(0, 50) + "..." : msg.getContent();
+            summary.append(String.format("%s: %s\\n", msg.getNeckName(), truncatedContent));
+        }
+
+        return summary.toString();
+    }
+
+    // 辅助方法：生成笔记内容
+    private String generateNoteContent(List<ChatRoomMessage> messages, ChatRoom chatRoom) {
+        StringBuilder html = new StringBuilder();
+
+        // HTML头部
+        html.append("<!DOCTYPE html>");
+        html.append("<html lang=\"zh-CN\">");
+        html.append("<head>");
+        html.append("<meta charset=\"UTF-8\">");
+        html.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
+        html.append(String.format("<title>%s - 精华笔记</title>", chatRoom.getTitle()));
+        html.append("<style>");
+        html.append("body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }");
+        html.append(".note-header { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }");
+        html.append(".message { margin-bottom: 15px; padding: 10px; border-left: 4px solid #007bff; background-color: #f8f9fa; }");
+        html.append(".message-header { display: flex; align-items: center; margin-bottom: 5px; }");
+        html.append(".user-name { font-weight: bold; color: #333; margin-right: 10px; }");
+        html.append(".message-time { color: #6c757d; font-size: 0.9em; }");
+        html.append(".message-content { margin-top: 5px; }");
+        html.append(".host-message { border-left-color: #28a745; background-color: #e8f5e9; }");
+        html.append("</style>");
+        html.append("</head>");
+        html.append("<body>");
+
+        // 笔记头部信息
+        html.append("<div class=\"note-header\">");
+        html.append(String.format("<h1>%s</h1>", chatRoom.getTitle()));
+        html.append(String.format("<p><strong>主题:</strong> %s</p>", chatRoom.getTheme()));
+        html.append(String.format("<p><strong>主持人:</strong> %s</p>", chatRoom.getHostId())); // 实际应该是主持人名称
+        html.append(String.format("<p><strong>生成时间:</strong> %s</p>", LocalDateTime.now()));
+        html.append(String.format("<p><strong>包含消息:</strong> %d 条</p>", messages.size()));
+        html.append("</div>");
+
+        // 消息列表
+        html.append("<div class=\"messages\">");
+        for (ChatRoomMessage message : messages) {
+            String messageClass = message.getUserId().equals(chatRoom.getHostId()) ?
+                    "message host-message" : "message";
+
+            html.append("<div class=\"").append(messageClass).append("\">");
+            html.append("<div class=\"message-header\">");
+            html.append(String.format("<span class=\"user-name\">%s</span>", message.getNeckName()));
+            html.append(String.format("<span class=\"message-time\">%s</span>", message.getSendTime()));
+            html.append("</div>");
+            html.append(String.format("<div class=\"message-content\">%s</div>", message.getContent()));
+            html.append("</div>");
+        }
+        html.append("</div>");
+
+        // 尾部
+        html.append("<div style=\"margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #6c757d; font-size: 0.9em;\">");
+        html.append("<p>本笔记由系统自动生成，内容来自聊天室实时对话记录。</p>");
+        html.append("</div>");
+
+        html.append("</body>");
+        html.append("</html>");
+
+        return html.toString();
+    }
+
+    // 辅助方法：生成笔记URL
+    private String generateNoteUrl(Long noteId) {
+        // 可以是静态HTML文件路径，或者API接口路径
+        return String.format("/api/v1/essence-note/%s", noteId);
     }
 
 
