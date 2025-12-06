@@ -9,7 +9,6 @@ import java.util.Collection;
 public class CustomUserPrincipal extends User {
     private final Long userId;
     private final String username;
-    private String password;
     private Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserPrincipal(
